@@ -30,52 +30,52 @@ public static class ChunkGenerator
                         Vector2 topRight = new Vector2(1, 0);
 
                         VertexPositionColorTexture[] front = [
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, -0.5f + worldZ), Color.White, topLeft),
-                            new (new Vector3(-0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0.5f + worldX, 0.5f + worldY, -0.5f + worldZ), Color.White, topRight),
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, -0.5f + worldZ), Color.White, topLeft),
+                            new (new Vector3(0 + worldX, 1 + worldY, 0 + worldZ), Color.White, topLeft),
+                            new (new Vector3(0 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(1 + worldX, 1 + worldY, 0 + worldZ), Color.White, topRight),
+                            new (new Vector3(0 + worldX, 1 + worldY, 0 + worldZ), Color.White, topLeft),
                         ];
                         VertexPositionColorTexture[] top = [
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topLeft),
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, -0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0.5f + worldX, 0.5f + worldY, -0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0.5f + worldX, 0.5f + worldY, -0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topRight),
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topLeft),
+                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
+                            new (new Vector3(0 + worldX, 1 + worldY, 0 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(1 + worldX, 1 + worldY, 0 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(1 + worldX, 1 + worldY, 0 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(1 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
+                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
                         ];
                         VertexPositionColorTexture[] bottom = [
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, topRight),
-                            new (new Vector3(-0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, topLeft),
-                            new (new Vector3(-0.5f + worldX, -0.5f + worldY, 0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(-0.5f + worldX, -0.5f + worldY, 0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, 0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, topRight),
+                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, topRight),
+                            new (new Vector3(0 + worldX, 0 + worldY, 0 + worldZ), Color.White, topLeft),
+                            new (new Vector3(0 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(0 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(1 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, topRight),
                         ];
                         VertexPositionColorTexture[] back = [
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topRight),
-                            new (new Vector3(0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topLeft),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, 0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, 0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(-0.5f + worldX, -0.5f + worldY, 0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topRight),
+                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
+                            new (new Vector3(1 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
+                            new (new Vector3(1 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(1 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(0 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
                         ];
                         VertexPositionColorTexture[] right = [
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topLeft),
-                            new (new Vector3(-0.5f + worldX, -0.5f + worldY, 0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(-0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(-0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, -0.5f + worldZ), Color.White, topRight),
-                            new (new Vector3(-0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topLeft),
+                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
+                            new (new Vector3(0 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(0 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(0 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(0 + worldX, 1 + worldY, 0 + worldZ), Color.White, topRight),
+                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
                         ];
                         VertexPositionColorTexture[] left = [
-                            new (new Vector3(0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topRight),
-                            new (new Vector3(0.5f + worldX, 0.5f + worldY, -0.5f + worldZ), Color.White, topLeft),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, -0.5f + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0.5f + worldX, -0.5f + worldY, 0.5f + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0.5f + worldX, 0.5f + worldY, 0.5f + worldZ), Color.White, topRight),
+                            new (new Vector3(1 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
+                            new (new Vector3(1 + worldX, 1 + worldY, 0 + worldZ), Color.White, topLeft),
+                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomLeft),
+                            new (new Vector3(1 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomRight),
+                            new (new Vector3(1 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
                         ];
                         
                         List<VertexPositionColorTexture> faces = new List<VertexPositionColorTexture>();
@@ -99,7 +99,7 @@ public static class ChunkGenerator
                         {
                             faces.AddRange(back);
                         }
-                        if (!chunk.TryGetBlock(new Vector3Int(x - 1, worldY, z - 1), out var _))
+                        if (!chunk.TryGetBlock(new Vector3Int(x, worldY, z - 1), out var _))
                         {
                             faces.AddRange(front);
                         }

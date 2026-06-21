@@ -16,6 +16,13 @@ public class Camera
         this.graphicsDevice = Minecraft.Instance.GraphicsDevice;
     }
 
+    public void MarkDirty()
+    {
+        projectionChanged = true;
+        viewChanged = true;
+        rotationChanged = true;
+    }
+
     private Vector3 target;
 
     private bool projectionChanged = false;

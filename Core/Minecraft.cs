@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MinecraftClone.Core.Debug;
 using MinecraftClone.Core.Level;
 using MinecraftClone.Core.Level.Chunk;
 using MinecraftClone.Core.Model;
@@ -46,9 +47,17 @@ public class Minecraft : Game
         IsMouseVisible = true;
         Logger = new Logger("Minecraft");
         
-        TargetElapsedTime = TimeSpan.FromSeconds(0.0045f);
+        Window.AllowUserResizing = true;
+        Window.ClientSizeChanged += OnWindowResized;
+        
+        TargetElapsedTime = TimeSpan.FromSeconds(0.005f);
     }
 
+    ~Minecraft()
+    {
+        Window.ClientSizeChanged -= OnWindowResized;
+    }
+    
     private Chunk chunk;
 
     protected override void Initialize()
@@ -84,6 +93,14 @@ public class Minecraft : Game
         base.Initialize();
     }
 
+    private void OnWindowResized(object sender, EventArgs e)
+    {
+        camera?.MarkDirty();
+    }
+
+    private float averageFPS;
+    private float sinceLastFlush = 0;
+    
     protected override void LoadContent()
     {
         _uiSpriteBatch = new SpriteBatch(GraphicsDevice);
@@ -164,7 +181,7 @@ public class Minecraft : Game
         
         basicEffect.Texture = cobblestone;
     }
-
+    
     protected override void UnloadContent()
     {
         //cubeAll.Dispose();
@@ -260,9 +277,11 @@ public class Minecraft : Game
         base.Update(gameTime);
     }
 
+    FrameCounter frameCounter = new();
     protected override void Draw(GameTime gameTime)
     {
-        fps = 1.0 / gameTime.ElapsedGameTime.TotalSeconds;
+        frameCounter.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+        
         GraphicsDevice.Clear(Color.CornflowerBlue);
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -293,8 +312,9 @@ public class Minecraft : Game
         
         _uiSpriteBatch.Begin();
         // FPS Counter
-        _uiSpriteBatch.DrawString(font, fps.ToString("F1"), new Vector2(0, 0), Color.White);
+        _uiSpriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString("F1"), new Vector2(0, 0), Color.White);
         _uiSpriteBatch.DrawString(font, camera.Position.ToString(), new Vector2(0, 15), Color.White);
+        _uiSpriteBatch.DrawString(font, $"yaw: {camera.Yaw}, pitch: {camera.Pitch}", new Vector2(0, 30), Color.White);
         _uiSpriteBatch.End();
             
         base.Draw(gameTime);
