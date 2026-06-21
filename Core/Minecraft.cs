@@ -25,6 +25,7 @@ public class Minecraft : Game
 
     public Logger Logger;
     
+    public BasicEffect BasicEffect => basicEffect;
     private BasicEffect basicEffect;
 
     SpriteFont font;
@@ -64,7 +65,7 @@ public class Minecraft : Game
     {
         Instance = this;
         Logger.Log("Initializing Minecraft...");
-        camera = new Camera(new Vector3(2, 1, 5), -22.5f, 10.5f);
+        camera = new Camera(new Vector3(2, 1, 20), 0f, 0);
         basicEffect = new BasicEffect(_graphics.GraphicsDevice);
         basicEffect.Alpha = 1;
         basicEffect.TextureEnabled = true;
@@ -197,14 +198,21 @@ public class Minecraft : Game
     
     List<WorldObject> worldObjects = new List<WorldObject>();
     
+    KeyboardState oldKeyboardState;
+    KeyboardState newKeyboardState;
+    
     protected override void Update(GameTime gameTime)
     {
         if (IsActive)
         {
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            newKeyboardState = Keyboard.GetState();
+
+            if (newKeyboardState.IsKeyDown(Keys.Escape) && oldKeyboardState.IsKeyUp(Keys.Escape))
+            {
+                mouseLocked = !mouseLocked;
+            }
             
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (mouseLocked)
             {
@@ -269,6 +277,7 @@ public class Minecraft : Game
 
                 camera.Position += movementVector * dt * movementSpeed;
             }
+            oldKeyboardState = Keyboard.GetState();
         }
         else
         {
@@ -286,9 +295,21 @@ public class Minecraft : Game
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         
+        SamplerState samplerState = new SamplerState();
+        samplerState.MaxMipLevel = 5;
+        samplerState.Filter = TextureFilter.Point;
+        samplerState.AddressU = TextureAddressMode.Clamp;
+        samplerState.AddressV = TextureAddressMode.Clamp;
+        samplerState.AddressW = TextureAddressMode.Clamp;
+        
+        GraphicsDevice.SamplerStates[0] = samplerState;
+        
+        
         basicEffect.Projection = camera.GetProjectionMatrix();
         basicEffect.View = camera.GetViewMatrix();
 
+        
+        
         /*foreach (WorldObject worldObject in worldObjects)
         {
             basicEffect.World = camera.GetWorldMatrix(worldObject);
@@ -296,7 +317,7 @@ public class Minecraft : Game
             //cubeAll.Draw(basicEffect);
         }*/
         
-        chunk.Draw(basicEffect);
+        chunk.Draw(gameTime);
 
         /*GraphicsDevice.SetVertexBuffer(vertexBuffer);
         GraphicsDevice.Indices = indexBuffer;

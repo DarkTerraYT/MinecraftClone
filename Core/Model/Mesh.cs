@@ -95,8 +95,6 @@ public class Mesh<T> : IDisposable where T : struct
             GraphicsDevice.SetVertexBuffer(vertexBuffer);
             GraphicsDevice.Indices = indexBuffer;
         
-            GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
-        
             foreach (var pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();

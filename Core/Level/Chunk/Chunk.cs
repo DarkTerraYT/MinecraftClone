@@ -6,7 +6,7 @@ using MinecraftClone.Core.Numerics;
 
 namespace MinecraftClone.Core.Level.Chunk;
 
-public class Chunk : IDisposable
+public class Chunk : IDisposable, IDrawable
 {
     public BlockState[,,] Blocks { get; set; }
 
@@ -55,7 +55,7 @@ public class Chunk : IDisposable
         updated = true;
     }
 
-    public void Draw(Effect effect)
+    private void Draw(Effect effect)
     {
         if (updated)
         {
@@ -72,4 +72,14 @@ public class Chunk : IDisposable
     {
         mesh?.Dispose();
     }
+
+    public void Draw(GameTime gameTime)
+    {
+        Draw(Minecraft.Instance.BasicEffect);
+    }
+
+    public int DrawOrder { get; }
+    public bool Visible { get; }
+    public event EventHandler<EventArgs> DrawOrderChanged;
+    public event EventHandler<EventArgs> VisibleChanged;
 }
