@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MinecraftClone.Core.Level;
 
-public class Camera
+public class Camera : IDirtyable
 {
     public Camera(Vector3 position, float pitch, float yaw, float fovY = 60.0f)
     {
@@ -15,6 +15,8 @@ public class Camera
         
         this.graphicsDevice = Minecraft.Instance.GraphicsDevice;
     }
+
+    public bool Dirty => projectionChanged || viewChanged || rotationChanged;
 
     public void MarkDirty()
     {
