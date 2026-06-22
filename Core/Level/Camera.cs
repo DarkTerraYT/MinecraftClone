@@ -38,7 +38,7 @@ public class Camera : IDirtyable
         get => pitch;
         set
         {
-            pitch = Math.Clamp(value, -80.0f, 80.0f);
+            pitch = Math.Clamp(value, -75.0f, 75.0f);
             rotationChanged = true;
             viewChanged = true;
         }
@@ -50,7 +50,10 @@ public class Camera : IDirtyable
         get => yaw;
         set
         {
-            yaw = value;
+            float range = 360.0f;
+            float min = -180;
+            yaw = min + (value - min) - (range * MathF.Floor((value - min) / range));
+                
             rotationChanged = true;
             viewChanged = true;
         }

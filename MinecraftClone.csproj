@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
@@ -10,8 +10,8 @@
         <ApplicationIcon>Icon.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.*"/>
-        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*"/>
+        <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.*" />
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
     </ItemGroup>
     <ItemGroup>
       <None Remove="Content\Content.mgcb" />
@@ -19,6 +19,7 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Content\textures\" />
+      <Folder Include="Core\Block\" />
     </ItemGroup>
 
     <!-- Keep the console window visible for Debug builds -->
@@ -30,4 +31,7 @@
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <OutputType>WinExe</OutputType>
     </PropertyGroup>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="if not exist &quot;$(TargetDir)Mods&quot; mkdir &quot;$(TargetDir)Mods&quot;" />
+    </Target>
 </Project>

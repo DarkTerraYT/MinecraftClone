@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace MinecraftClone.Core;
 
-public readonly struct Identifier
+public readonly record struct Identifier
 {
     public const char Separator = ':';
     
@@ -25,6 +25,11 @@ public readonly struct Identifier
     {
         return new Identifier(@namespace, path);
     }
+    public static Identifier WithDefaultNamespace(string path)
+    {
+        return new Identifier("minecraft", path);
+    }
+
 
     public override string ToString()
     {

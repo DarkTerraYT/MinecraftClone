@@ -19,6 +19,8 @@ public class Logger
         Level = level;
     }
     
+    public static readonly Logger Global = new("");
+    
     private readonly string _tag;
 
     public LogLevel Level;

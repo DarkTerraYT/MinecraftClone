@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MinecraftClone.Core.Model;
+using MinecraftClone.Core.World;
 using MinecraftClone.Core.Numerics;
 
 namespace MinecraftClone.Core.Level.Chunk;
@@ -12,7 +12,7 @@ public class Chunk : IDisposable, IDrawable
 
     public readonly Vector3Int Position;
 
-    private Mesh<VertexPositionColorTexture> mesh; // Position, Color, UV
+    private Mesh<VertexPositionColorNormalTexture> mesh; // Position, Color, UV
     
     private bool updated = true;
     
@@ -22,6 +22,11 @@ public class Chunk : IDisposable, IDrawable
         Blocks = new BlockState[16, 255, 16];
     }
 
+    public bool TryGetBlockWorld(Vector3Int localPosition, out BlockState block)
+    {
+        return Minecraft.Instance.Level.TryGetBlock(Position + localPosition, out block);
+    }
+    
     public bool TryGetBlock(Vector3Int localPosition, out BlockState block)
     {
         if (localPosition.X >= 16 || localPosition.Z >= 16 || localPosition.Y >= 255 || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
@@ -62,8 +67,6 @@ public class Chunk : IDisposable, IDrawable
         if (updated)
         {
             mesh = ChunkGenerator.GenerateChunkMesh(this);
-            Minecraft.Instance.Logger.Debug("Chunk generated");
-            Minecraft.Instance.Logger.Debug(mesh.Vertices.Length);
             updated = false;
         }
         

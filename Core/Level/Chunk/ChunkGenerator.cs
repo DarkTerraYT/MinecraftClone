@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MinecraftClone.Core.Model;
+using MinecraftClone.Core.World;
 using MinecraftClone.Core.Numerics;
 
 namespace MinecraftClone.Core.Level.Chunk;
@@ -10,9 +10,9 @@ public static class ChunkGenerator
 {
     private static Logger Logger = new Logger("ChunkGenerator");
     
-    public static Mesh<VertexPositionColorTexture> GenerateChunkMesh(Chunk chunk)
+    public static Mesh<VertexPositionColorNormalTexture> GenerateChunkMesh(Chunk chunk)
     {
-        List<VertexPositionColorTexture> allVertices = new List<VertexPositionColorTexture>();
+        List<VertexPositionColorNormalTexture> allVertices = new List<VertexPositionColorNormalTexture>();
         
         for (int x = 0; x < 16; x++)
         {
@@ -24,89 +24,43 @@ public static class ChunkGenerator
                     {
                         int worldX = chunk.Position.X + x;
                         int worldY = chunk.Position.Y + y;
-                        
                         int worldZ = chunk.Position.Z + z;
                         
-                        Vector2 bottomLeft = new Vector2(0, 1);
-                        Vector2 bottomRight = new Vector2(1, 1);
-                        Vector2 topLeft = new Vector2(0, 0);
-                        Vector2 topRight = new Vector2(1, 0);
+                        Vector3 worldPos = new Vector3(worldX, worldY, worldZ);
 
-                        VertexPositionColorTexture[] front = [
-                            new (new Vector3(0 + worldX, 1 + worldY, 0 + worldZ), Color.White, topLeft),
-                            new (new Vector3(0 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(1 + worldX, 1 + worldY, 0 + worldZ), Color.White, topRight),
-                            new (new Vector3(0 + worldX, 1 + worldY, 0 + worldZ), Color.White, topLeft),
-                        ];
-                        VertexPositionColorTexture[] top = [
-                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
-                            new (new Vector3(0 + worldX, 1 + worldY, 0 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(1 + worldX, 1 + worldY, 0 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(1 + worldX, 1 + worldY, 0 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(1 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
-                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
-                        ];
-                        VertexPositionColorTexture[] bottom = [
-                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, topRight),
-                            new (new Vector3(0 + worldX, 0 + worldY, 0 + worldZ), Color.White, topLeft),
-                            new (new Vector3(0 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(1 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, topRight),
-                        ];
-                        VertexPositionColorTexture[] back = [
-                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
-                            new (new Vector3(1 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
-                            new (new Vector3(1 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(1 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
-                        ];
-                        VertexPositionColorTexture[] right = [
-                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
-                            new (new Vector3(0 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(0 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(0 + worldX, 1 + worldY, 0 + worldZ), Color.White, topRight),
-                            new (new Vector3(0 + worldX, 1 + worldY, 1 + worldZ), Color.White, topLeft),
-                        ];
-                        VertexPositionColorTexture[] left = [
-                            new (new Vector3(1 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
-                            new (new Vector3(1 + worldX, 1 + worldY, 0 + worldZ), Color.White, topLeft),
-                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(1 + worldX, 0 + worldY, 0 + worldZ), Color.White, bottomLeft),
-                            new (new Vector3(1 + worldX, 0 + worldY, 1 + worldZ), Color.White, bottomRight),
-                            new (new Vector3(1 + worldX, 1 + worldY, 1 + worldZ), Color.White, topRight),
-                        ];
+                        bool cullFront = chunk.TryGetBlockWorld(new Vector3Int(x, worldY, z - 1), out var front) && !front.Block.NonCulledFaces.Contains(Face.Direction.Front);
+                        bool cullBack = chunk.TryGetBlockWorld(new Vector3Int(x, worldY, z + 1), out var back) && !back.Block.NonCulledFaces.Contains(Face.Direction.Back);
+                        bool cullRight = chunk.TryGetBlockWorld(new Vector3Int(x - 1, worldY, z), out var right) && !right.Block.NonCulledFaces.Contains(Face.Direction.Right);
+                        bool cullLeft = chunk.TryGetBlockWorld(new Vector3Int(x + 1, worldY, z), out var left) && !left.Block.NonCulledFaces.Contains(Face.Direction.Left);
+                        bool cullTop = chunk.TryGetBlockWorld(new Vector3Int(x, worldY + 1, z), out var top) && !top.Block.NonCulledFaces.Contains(Face.Direction.Top);
+                        bool cullBottom = chunk.TryGetBlockWorld(new Vector3Int(x, worldY - 1, z), out var bottom) && !bottom.Block.NonCulledFaces.Contains(Face.Direction.Bottom);
                         
-                        List<VertexPositionColorTexture> faces = new List<VertexPositionColorTexture>();
-                        if (!chunk.TryGetBlock(new Vector3Int(x, worldY + 1, z), out var _))
-                        {
-                            faces.AddRange(top);
-                        }
-                        if (!chunk.TryGetBlock(new Vector3Int(x, worldY - 1, z), out var _))
-                        {
-                            faces.AddRange(bottom);
-                        }
-                        if (!chunk.TryGetBlock(new Vector3Int(x + 1, worldY, z), out var _))
-                        {
-                            faces.AddRange(left);
-                        }
-                        if (!chunk.TryGetBlock(new Vector3Int(x - 1, worldY, z), out var _))
-                        {
-                            faces.AddRange(right);
-                        }
-                        if (!chunk.TryGetBlock(new Vector3Int(x, worldY, z + 1), out var _))
-                        {
-                            faces.AddRange(back);
-                        }
-                        if (!chunk.TryGetBlock(new Vector3Int(x, worldY, z - 1), out var _))
-                        {
-                            faces.AddRange(front);
-                        }
+                        List<VertexPositionColorNormalTexture> faces = new List<VertexPositionColorNormalTexture>();
 
+                        foreach (var face in block.Block.Model.Faces)
+                        {
+                            switch (face.FaceDirection)
+                            {
+                                case Face.Direction.Front:
+                                    if (!cullFront) faces.AddRange(face.WithOffset(worldPos).Vertices);
+                                    continue;
+                                case Face.Direction.Back:
+                                    if (!cullBack) faces.AddRange(face.WithOffset(worldPos).Vertices);
+                                    continue;
+                                case Face.Direction.Right:
+                                    if (!cullRight) faces.AddRange(face.WithOffset(worldPos).Vertices);
+                                    continue;
+                                case Face.Direction.Left:
+                                    if (!cullLeft) faces.AddRange(face.WithOffset(worldPos).Vertices);
+                                    continue;
+                                case Face.Direction.Top:
+                                    if (!cullTop) faces.AddRange(face.WithOffset(worldPos).Vertices);
+                                    continue;
+                                case Face.Direction.Bottom:
+                                    if (!cullBottom) faces.AddRange(face.WithOffset(worldPos).Vertices);
+                                    continue;
+                            }
+                        }
                         
                         allVertices.AddRange(faces);
                     }
@@ -114,7 +68,7 @@ public static class ChunkGenerator
             }
         }
         
-        Mesh<VertexPositionColorTexture> mesh = new Mesh<VertexPositionColorTexture>(allVertices.ToArray(), [], strip: true);
+        Mesh<VertexPositionColorNormalTexture> mesh = new Mesh<VertexPositionColorNormalTexture>(allVertices.ToArray(), [], strip: true);
         return mesh;
     }
 }

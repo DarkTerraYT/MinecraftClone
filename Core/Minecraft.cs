@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MinecraftClone.Core.Debug;
 using MinecraftClone.Core.Level;
 using MinecraftClone.Core.Level.Chunk;
-using MinecraftClone.Core.Model;
+using MinecraftClone.Core.World;
 using MinecraftClone.Core.Mods;
 using MinecraftClone.Core.Numerics;
+using Model = MinecraftClone.Core.World.Model;
 
 namespace MinecraftClone.Core;
 
@@ -21,7 +23,7 @@ public class Minecraft : Game
     }
     
     private GraphicsDeviceManager _graphics;
-    private SpriteBatch _uiSpriteBatch;
+    public SpriteBatch SpriteBatch;
     public static Minecraft Instance;
 
     public Logger Logger;
@@ -35,12 +37,12 @@ public class Minecraft : Game
     
     private Camera camera;
 
-    private Texture2D cobblestone;
-
-    //private Mesh<VertexPositionColorTexture> cubeAll;
+    //private Mesh<VertexPositionColorNormalTexture> cubeAll;
     
     private VertexBuffer vertexBuffer;
     private IndexBuffer indexBuffer;
+    
+    private ModLoader modLoader;
     
     public Minecraft()
     {
@@ -53,6 +55,7 @@ public class Minecraft : Game
         Window.ClientSizeChanged += OnWindowResized;
         
         TargetElapsedTime = TimeSpan.FromMilliseconds(1.0f);
+        modLoader = new ModLoader();
     }
 
     ~Minecraft()
@@ -62,36 +65,31 @@ public class Minecraft : Game
     
     private Chunk chunk;
 
+    
+    private Vector3 ambientLightColor = new Vector3(0.6f, 0.6f, 0.6f);
     protected override void Initialize()
     {
         Instance = this;
         Logger.Log("Initializing Minecraft...");
-        camera = new Camera(new Vector3(2, 260, 20), 0f, 0);
+        camera = new Camera(new Vector3(2, 80, 20), 0f, 0);
         basicEffect = new BasicEffect(_graphics.GraphicsDevice);
         basicEffect.Alpha = 1;
         basicEffect.TextureEnabled = true;
         basicEffect.VertexColorEnabled = true;
-        basicEffect.LightingEnabled = false;
+        basicEffect.LightingEnabled = true;
         basicEffect.FogEnabled = false;
+        basicEffect.AmbientLightColor = ambientLightColor;
+        basicEffect.DirectionalLight0.Enabled = true;
+        basicEffect.DirectionalLight0.Direction = new Vector3(1, -2, -0.35f);
+        basicEffect.DirectionalLight0.DiffuseColor = new Vector3(0.4f, 0.4f, 0.4f);
+        basicEffect.DirectionalLight0.SpecularColor = new Vector3(0.0f, 0.0f, 0.0f);
         
         int centerX = GraphicsDevice.Viewport.Width / 2;
         int centerY = GraphicsDevice.Viewport.Height / 2;
-
-        chunk = new Chunk(Vector3.Zero);
-        
-        for (int x = 0; x < 16; x++)
-        {
-            for (int z = 0; z < 16; z++)
-            {
-                for (int y = 0; y < 255; y++)
-                {
-                    chunk.SetBlock(new Vector3Int(x,y,z), new BlockState());
-                }
-            }
-        }
         
         Mouse.SetPosition(centerX, centerY);
         oldMouseState = Mouse.GetState();
+        modLoader.Initialize();
         base.Initialize();
     }
 
@@ -103,85 +101,32 @@ public class Minecraft : Game
     private float averageFPS;
     private float sinceLastFlush = 0;
     
+    
+    private static Identifier cobblestoneId = Identifier.WithDefaultNamespace("cobblestone");
+    private static Identifier dirtId  = Identifier.WithDefaultNamespace("dirt");
+    private static Identifier grassSideId  = Identifier.WithDefaultNamespace("grass_block_side");
+    private static Identifier grassTopId  = Identifier.WithDefaultNamespace("grass_block_top");
+    private static Identifier grassId  = Identifier.WithDefaultNamespace("grass");
+    public Block Cobblestone;
+    public Block Dirt;
+    public Block GrassBlock;
+    
     protected override void LoadContent()
     {
-        _uiSpriteBatch = new SpriteBatch(GraphicsDevice);
+        SpriteBatch = new SpriteBatch(GraphicsDevice);
         font = Content.Load<SpriteFont>("fonts/font");
-        cobblestone = Content.Load<Texture2D>("textures/cobblestone");
         
-        /*VertexPositionColor[] vertices =
-        [
-            // FRONT
-            new (new Vector3(-0.5f, 0.5f, -0.5f), Color.White),
-            new (new Vector3(-0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(0.5f, 0.5f, -0.5f), Color.White),
-            new (new Vector3(-0.5f, 0.5f, -0.5f), Color.White),
-            // TOP
-            new (new Vector3(-0.5f, 0.5f, 0.5f), Color.White),
-            new (new Vector3(-0.5f, 0.5f, -0.5f), Color.White ),
-            new (new Vector3(0.5f, 0.5f, -0.5f), Color.White),
-            new (new Vector3(0.5f, 0.5f, -0.5f), Color.White),
-            new (new Vector3(0.5f, 0.5f, 0.5f), Color.White),
-            new (new Vector3(-0.5f, 0.5f, 0.5f), Color.White),
-            // BOTTOM
-            new (new Vector3(0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(-0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(-0.5f, -0.5f, 0.5f), Color.White),
-            new (new Vector3(-0.5f, -0.5f, 0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, 0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, -0.5f), Color.White),
-            // BACK
-            new (new Vector3(-0.5f, 0.5f, 0.5f), Color.White),
-            new (new Vector3(0.5f, 0.5f, 0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, 0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, 0.5f), Color.White),
-            new (new Vector3(-0.5f, -0.5f, 0.5f), Color.White),
-            new (new Vector3(-0.5f, 0.5f, 0.5f), Color.White),
-            // RIGHT
-            new (new Vector3(-0.5f, 0.5f, 0.5f), Color.White),
-            new (new Vector3(-0.5f, -0.5f, 0.5f), Color.White),
-            new (new Vector3(-0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(-0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(-0.5f, 0.5f, -0.5f), Color.White),
-            new (new Vector3(-0.5f, 0.5f, 0.5f), Color.White),
-            // LEFT
-            new (new Vector3(0.5f, 0.5f, 0.5f), Color.White),
-            new (new Vector3(0.5f, 0.5f, -0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, -0.5f), Color.White),
-            new (new Vector3(0.5f, -0.5f, 0.5f), Color.White),
-            new (new Vector3(0.5f, 0.5f, 0.5f), Color.White),
-        ];
+        Atlas = new TextureAtlas(Identifier.WithDefaultNamespace("atlas"), 16, 4, 4); // Start with a max of 16 textures
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/cobblestone"), cobblestoneId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/dirt"), dirtId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/grass_block_side"), grassSideId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/grass_block_top"), grassTopId);
         
-        ushort[] indices = new ushort[vertices.Length];
-        List<VertexPositionColor> vertexList = new List<VertexPositionColor>();
-        Dictionary<VertexPositionColor, ushort> vertexToIndex = new Dictionary<VertexPositionColor, ushort>();
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            VertexPositionColor vertex = vertices[i];
-            if (vertexToIndex.TryGetValue(vertex, out ushort index))
-            {
-                indices[i] = index;
-            }
-            else
-            {
-                ushort newIndex = (ushort)vertexList.Count;
-                vertexToIndex.Add(vertex, newIndex);
-                vertexList.Add(vertex);
-                indices[i] = newIndex;
-            }
-        }
-        
-        vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), vertices.Length, BufferUsage.WriteOnly);
-        vertexBuffer.SetData(vertices);
-        indexBuffer = new IndexBuffer(GraphicsDevice, typeof(ushort), indices.Length, BufferUsage.WriteOnly);
-        indexBuffer.SetData(indices);*/
-        
-        //cubeAll = Mesh.GetCubeAll();
-        
-        basicEffect.Texture = cobblestone;
+        Dirt = new Block(Model.CubeAll(Vector3.Zero, Vector3.One, dirtId, Color.White, dirtId));
+        Cobblestone = new Block(Model.CubeAll(Vector3.Zero, Vector3.One, cobblestoneId, Color.White, cobblestoneId));
+        GrassBlock = new Block(Model.CubeBottomTopSides(Vector3.Zero, Vector3.One, grassTopId,dirtId, grassSideId, Color.White, grassId));
+
+        Level = new();
     }
     
     protected override void UnloadContent()
@@ -195,12 +140,14 @@ public class Minecraft : Game
 
     private double fps;
 
-    private float movementSpeed = 5;
+    private float movementSpeed = 30;
     
     List<WorldObject> worldObjects = new List<WorldObject>();
     
     KeyboardState oldKeyboardState;
     KeyboardState newKeyboardState;
+    
+    public TextureAtlas Atlas;
     
     protected override void Update(GameTime gameTime)
     {
@@ -269,7 +216,11 @@ public class Minecraft : Game
             {
                 movementVector += new Vector3(1, 0, 0);
             }
-            
+
+            if (KeyDown(Keys.OemPlus))
+            {
+                showAtlas = !showAtlas;
+            }
 
             if (movementVector != Vector3.Zero)
             {
@@ -291,8 +242,26 @@ public class Minecraft : Game
     }
 
     FrameCounter frameCounter = new();
+    
+    private bool KeyDown(Keys key)
+    {
+        return newKeyboardState.IsKeyDown(key) && oldKeyboardState.IsKeyUp(key);
+    }private bool KeyUp(Keys key)
+    {
+        return newKeyboardState.IsKeyUp(key) && oldKeyboardState.IsKeyDown(key);
+    }
+
+    private bool showAtlas = false;
+
+    public Level.Level Level;
+    
     protected override void Draw(GameTime gameTime)
     {
+        if (Atlas.Dirty)
+        {
+            Atlas.Bake();
+        }
+        
         frameCounter.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
         
         GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -308,11 +277,9 @@ public class Minecraft : Game
         
         GraphicsDevice.SamplerStates[0] = samplerState;
         
-        
         basicEffect.Projection = camera.GetProjectionMatrix();
         basicEffect.View = camera.GetViewMatrix();
-
-        
+        basicEffect.Texture = Atlas._renderTarget;
         
         /*foreach (WorldObject worldObject in worldObjects)
         {
@@ -320,9 +287,9 @@ public class Minecraft : Game
 
             //cubeAll.Draw(basicEffect);
         }*/
-        
-        chunk.Draw(gameTime);
 
+        Level.Draw(gameTime);
+        
         ModLoader.Instance.DrawAllModsMesh(gameTime);
         
         /*GraphicsDevice.SetVertexBuffer(vertexBuffer);
@@ -337,12 +304,25 @@ public class Minecraft : Game
             GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, indexBuffer.IndexCount / 3);
         }*/
         
-        _uiSpriteBatch.Begin();
+        SpriteBatch.Begin();
         // FPS Counter
-        _uiSpriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString("F1"), new Vector2(0, 0), Color.White);
-        _uiSpriteBatch.DrawString(font, camera.Position.ToString(), new Vector2(0, 15), Color.White);
-        _uiSpriteBatch.DrawString(font, $"yaw: {camera.Yaw}, pitch: {camera.Pitch}", new Vector2(0, 30), Color.White);
-        _uiSpriteBatch.End();
+        SpriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString("F1"), new Vector2(0, 0), Color.White);
+        SpriteBatch.DrawString(font, camera.Position.ToString(), new Vector2(0, 15), Color.White);
+        SpriteBatch.DrawString(font, $"yaw: {camera.Yaw}, pitch: {camera.Pitch}", new Vector2(0, 30), Color.White);
+        // Atlas
+        if (showAtlas)
+        {
+            Color[] rawPixels = new Color[Atlas.AtlasWidth * Atlas.AtlasHeight];
+            Atlas._renderTarget.GetData(rawPixels);
+            if (rawPixels.Any(color => color.A > 0))
+            {
+                Logger.Debug("Has colors!");
+            }
+            Logger.Debug("Drawing atlas");
+            SpriteBatch.Draw(Atlas._renderTarget, new Rectangle(0, 0, Atlas.AtlasWidth * 2, Atlas.AtlasHeight * 2), Color.White);
+        }
+        
+        SpriteBatch.End();
         
         
         ModLoader.Instance.DrawAllModsUi(gameTime);

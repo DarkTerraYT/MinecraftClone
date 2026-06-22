@@ -2,9 +2,9 @@
 
 namespace MinecraftClone.Core.Level;
 
-public class BlockState : WorldObject
+public class BlockState(Block block) : WorldObject
 {
     public Vector3Int ChunkPosition;
 
-    private Identifier blockId;
+    public Block Block = block;
 }
