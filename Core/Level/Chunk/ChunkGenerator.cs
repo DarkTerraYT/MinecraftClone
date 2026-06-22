@@ -8,6 +8,8 @@ namespace MinecraftClone.Core.Level.Chunk;
 
 public static class ChunkGenerator
 {
+    private static Logger Logger = new Logger("ChunkGenerator");
+    
     public static Mesh<VertexPositionColorTexture> GenerateChunkMesh(Chunk chunk)
     {
         List<VertexPositionColorTexture> allVertices = new List<VertexPositionColorTexture>();
@@ -22,6 +24,7 @@ public static class ChunkGenerator
                     {
                         int worldX = chunk.Position.X + x;
                         int worldY = chunk.Position.Y + y;
+                        
                         int worldZ = chunk.Position.Z + z;
                         
                         Vector2 bottomLeft = new Vector2(0, 1);

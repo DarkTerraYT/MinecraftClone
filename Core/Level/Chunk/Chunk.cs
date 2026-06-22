@@ -24,7 +24,7 @@ public class Chunk : IDisposable, IDrawable
 
     public bool TryGetBlock(Vector3Int localPosition, out BlockState block)
     {
-        if (localPosition.X >= 16 || localPosition.Z >= 16 || localPosition.Y >= 16 || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
+        if (localPosition.X >= 16 || localPosition.Z >= 16 || localPosition.Y >= 255 || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
         {
             block = null;
             return false;
@@ -50,6 +50,8 @@ public class Chunk : IDisposable, IDrawable
             Minecraft.Instance.Logger.Warn("Tried to set a block in a chunk outside of the bounds of the chunk.");
             return;
         }
+        
+        //Minecraft.Instance.Logger.Debug($"Setting block at {localPosition}");
         
         Blocks[localPosition.X, localPosition.Y, localPosition.Z] = block;
         updated = true;
