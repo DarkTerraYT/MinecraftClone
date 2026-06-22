@@ -312,14 +312,7 @@ public class Minecraft : Game
         // Atlas
         if (showAtlas)
         {
-            Color[] rawPixels = new Color[Atlas.AtlasWidth * Atlas.AtlasHeight];
-            Atlas._renderTarget.GetData(rawPixels);
-            if (rawPixels.Any(color => color.A > 0))
-            {
-                Logger.Debug("Has colors!");
-            }
-            Logger.Debug("Drawing atlas");
-            SpriteBatch.Draw(Atlas._renderTarget, new Rectangle(0, 0, Atlas.AtlasWidth * 2, Atlas.AtlasHeight * 2), Color.White);
+            SpriteBatch.Draw(Atlas._renderTarget, new Rectangle(0, 0, Atlas.AtlasWidth, Atlas.AtlasHeight), Color.White);
         }
         
         SpriteBatch.End();

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MinecraftClone": {
+      "commandName": "Project"
+    },
+    "Linux": {
+      "commandName": "Project"
+    }
+  }
+}
