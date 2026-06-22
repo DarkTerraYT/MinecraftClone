@@ -7,6 +7,7 @@ using MinecraftClone.Core.Debug;
 using MinecraftClone.Core.Level;
 using MinecraftClone.Core.Level.Chunk;
 using MinecraftClone.Core.Model;
+using MinecraftClone.Core.Mods;
 using MinecraftClone.Core.Numerics;
 
 namespace MinecraftClone.Core;
@@ -51,7 +52,7 @@ public class Minecraft : Game
         Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnWindowResized;
         
-        TargetElapsedTime = TimeSpan.FromSeconds(0.005f);
+        TargetElapsedTime = TimeSpan.FromMilliseconds(1.0f);
     }
 
     ~Minecraft()
@@ -65,7 +66,7 @@ public class Minecraft : Game
     {
         Instance = this;
         Logger.Log("Initializing Minecraft...");
-        camera = new Camera(new Vector3(2, 1, 20), 0f, 0);
+        camera = new Camera(new Vector3(2, 260, 20), 0f, 0);
         basicEffect = new BasicEffect(_graphics.GraphicsDevice);
         basicEffect.Alpha = 1;
         basicEffect.TextureEnabled = true;
@@ -82,7 +83,7 @@ public class Minecraft : Game
         {
             for (int z = 0; z < 16; z++)
             {
-                for (int y = 0; y < 16; y++)
+                for (int y = 0; y < 255; y++)
                 {
                     chunk.SetBlock(new Vector3Int(x,y,z), new BlockState());
                 }
@@ -277,7 +278,10 @@ public class Minecraft : Game
 
                 camera.Position += movementVector * dt * movementSpeed;
             }
+            
+            ModLoader.Instance.UpdateAllMods(gameTime);
             oldKeyboardState = Keyboard.GetState();
+            
         }
         else
         {
@@ -319,6 +323,8 @@ public class Minecraft : Game
         
         chunk.Draw(gameTime);
 
+        ModLoader.Instance.DrawAllModsMesh(gameTime);
+        
         /*GraphicsDevice.SetVertexBuffer(vertexBuffer);
         GraphicsDevice.Indices = indexBuffer;
 
@@ -337,6 +343,9 @@ public class Minecraft : Game
         _uiSpriteBatch.DrawString(font, camera.Position.ToString(), new Vector2(0, 15), Color.White);
         _uiSpriteBatch.DrawString(font, $"yaw: {camera.Yaw}, pitch: {camera.Pitch}", new Vector2(0, 30), Color.White);
         _uiSpriteBatch.End();
+        
+        
+        ModLoader.Instance.DrawAllModsUi(gameTime);
             
         base.Draw(gameTime);
     }
