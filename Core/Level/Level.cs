@@ -11,8 +11,11 @@ public class Level: IDrawable, IDirtyable
 
     private FastNoiseLite noise;
 
-    private const int seaLevel = 60;
+    private const int SeaLevel = 60;
 
+    private const int WorldWidth = 5;
+    private const int WorldDepth = 5;
+    
     public bool TryGetBlock(Vector3Int worldPos, out BlockState block)
     {
         int chunkX = worldPos.X / 16;
@@ -43,9 +46,9 @@ public class Level: IDrawable, IDirtyable
         noise = new FastNoiseLite();
         noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < WorldWidth; i++)
         {
-            for (int j = 0; j < 32; j++)
+            for (int j = 0; j < WorldDepth; j++)
             {
                 Chunk.Chunk chunk = new Chunk.Chunk(new Vector3Int(i * 16, 0, j * 16));
                 
@@ -54,16 +57,16 @@ public class Level: IDrawable, IDirtyable
                     for (int z = 0; z < 16; z++)
                     {
                         int yOffset = (int)(noise.GetNoise(x + (i * 16), z + (j * 16)) * 3);
-                        for (int y = 0; y < seaLevel + yOffset; y++)
+                        for (int y = 0; y < SeaLevel + yOffset; y++)
                         {
                             float y2 = noise.GetNoise(x + (i * 16), y, z + (j * 16));
                             
                             if (y2 > 0.75f)
                                 continue;
                             
-                            if (y < seaLevel - 4 + yOffset)
+                            if (y < SeaLevel - 4 + yOffset)
                                 chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Cobblestone));
-                            else if (y < seaLevel - 1 + yOffset)
+                            else if (y < SeaLevel - 1 + yOffset)
                                 chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Dirt));
                             else 
                                 chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.GrassBlock));

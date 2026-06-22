@@ -63,15 +63,37 @@ public sealed class TextureAtlas : IDirtyable
 
     private int row;
     private int column;
+
+    public readonly bool Mip;
     
-    public TextureAtlas(Identifier id, int spriteSize, int rows, int columns)
+    public TextureAtlas(Identifier id, int spriteSize, int rows, int columns, bool mip = false)
     {
         Id = id;
         this.rows = rows;
         this.columns = columns;
-        SpriteSize = spriteSize;
-        _renderTarget = new RenderTarget2D(Minecraft.Instance.GraphicsDevice, rows * SpriteSize, columns * SpriteSize, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+        SpriteSize = spriteSize;_renderTarget = new RenderTarget2D(
+            Minecraft.Instance.GraphicsDevice, 
+            rows * SpriteSize, 
+            columns * SpriteSize, 
+            mip, // Allocates Level 0, 1, and 2. It physically cannot downscale further.
+            SurfaceFormat.Color, 
+            DepthFormat.None, 
+            0, 
+            RenderTargetUsage.PreserveContents
+        );
         logger = new Logger(ToString());
+
+        _samplerState = new SamplerState()
+        {
+            AddressU = TextureAddressMode.Wrap,
+            AddressV = TextureAddressMode.Wrap,
+            AddressW = TextureAddressMode.Wrap,
+            Filter = TextureFilter.Point,
+            MaxAnisotropy = 16,
+            MaxMipLevel = 0
+        };
+        
+        Mip = mip;
     }
 
     public override string ToString()
@@ -81,6 +103,8 @@ public sealed class TextureAtlas : IDirtyable
 
     private Dictionary<Identifier, TextureNode> nodesById = new();
 
+    private readonly SamplerState _samplerState;
+    
     private void DrawTexture(int row, int column)
     {
         if (row * columns + column >= nodesById.Count)
@@ -94,7 +118,7 @@ public sealed class TextureAtlas : IDirtyable
         
         Rectangle drawRect = new Rectangle(texture.PixelCoords.X, texture.PixelCoords.Y, SpriteSize, SpriteSize);
         
-        _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
+        _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, _samplerState);
         _spriteBatch.Draw(texture.OriginalTexture, drawRect, Color.White);
         _spriteBatch.End();
         
@@ -137,7 +161,7 @@ public sealed class TextureAtlas : IDirtyable
         Logger.Global.Debug($"New size: indexes({columns},{rows}) size:({AtlasWidth},{AtlasHeight})" );
 
         _renderTarget?.Dispose();
-        _renderTarget = new RenderTarget2D(Minecraft.Instance.GraphicsDevice, rows * SpriteSize, columns * SpriteSize, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+        _renderTarget = new RenderTarget2D(Minecraft.Instance.GraphicsDevice, rows * SpriteSize, columns * SpriteSize, Mip, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
         RelcalcuteUvs();
         MarkDirty();
     }
