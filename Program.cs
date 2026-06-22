@@ -12,11 +12,10 @@ public static class Program
 {
     public static void Main()
     {
-        Mutex mutex = new Mutex(true, "LerpMcGerk.MinecraftClone", out bool isNew);
+        using Mutex mutex = new Mutex(true, "LerpMcGerk.MinecraftClone", out bool isNew);
 
         if (!isNew)
         {
-            mutex.Dispose();
             return;
         }
         
