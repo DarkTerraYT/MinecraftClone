@@ -1,16 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFrameworks>net9.0-windows;net9.0</TargetFrameworks>
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
+        <OutputType>Dll</OutputType>
     </PropertyGroup>
-    <PropertyGroup>
+    <PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Icon.ico</ApplicationIcon>
     </PropertyGroup>
+    
+    <!-- Windows uses DX11 -->
+    <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+        <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.*" />
+    </ItemGroup>
+
+    <!-- Linux and Mac will use OpenGL -->
+    <ItemGroup Condition="!$(TargetFramework.Contains('-windows'))">
+        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.*" />
+    </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.*" />
         <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
     </ItemGroup>
     <ItemGroup>
@@ -26,12 +36,7 @@
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <OutputType>Exe</OutputType>
     </PropertyGroup>
-
-    <!-- Hide the console window entirely for Release builds -->
-    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <OutputType>WinExe</OutputType>
-    </PropertyGroup>
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="if not exist &quot;$(TargetDir)Mods&quot; mkdir &quot;$(TargetDir)Mods&quot;" />
+    <Target Name="CreateModsFolder" AfterTargets="Build">
+        <MakeDir Directories="$(TargetDir)Mods" Condition="!Exists('$(TargetDir)Mods')" />
     </Target>
 </Project>

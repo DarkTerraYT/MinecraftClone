@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SharpDX.Direct2D1;
 using RenderTargetUsage = Microsoft.Xna.Framework.Graphics.RenderTargetUsage;
 using SpriteBatch = Microsoft.Xna.Framework.Graphics.SpriteBatch;
 
