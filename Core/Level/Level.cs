@@ -10,16 +10,17 @@ public class Level: IDrawable, IDirtyable
     public Dictionary<Point, Chunk.Chunk> Chunks = new(9);
     public Player Player;
 
-    private Random random = new();
+    private Random random = new(0);
     
     private FastNoiseLite noise;
 
     private const int SeaLevel = 60;
 
-    private const int WorldWidth = 24;
-    private const int WorldDepth = 24;
+    private const int WorldWidth = 8;
+    private const int WorldDepth = 8;
 
     private const float CaveThreshold = 0.05f;
+    private const float ExtraWormChance = 0.01f;
     
     public bool TryGetBlock(Vector3Int worldPos, out BlockState block)
     {
@@ -90,28 +91,40 @@ public class Level: IDrawable, IDirtyable
         }
         
         // Worm Cave pass
-        PerlinWorm worm = new PerlinWorm(new Vector3(WorldWidth / 2.0f * 16, highestY, WorldDepth / 2.0f * 16), 0, 0, 3, 0.33f);
-        int steps = random.Next(7, 14);
-        ClearBlocksInRadius(worm.Position, worm.Size);
-        for (int j = 0; j < steps; j++)
-        {
-            worm.Step(random);
-            ClearBlocksInRadius(worm.Position, worm.Size);
-        }
-
         int worldSize = WorldWidth * WorldDepth;
         int numWorms = worldSize / 4;
 
+        PerlinWorm createWorm()
+        {
+            return new PerlinWorm(
+                new Vector3(random.Next(0, WorldWidth * 16), random.Next(10, highestY + 1),
+                    (random.Next(0, WorldDepth * 16))), random.NextSingle() * 360 - 180, random.NextSingle() * 360 - 180, random.Next(2, 4),
+                1 - MathF.Min(random.NextSingle() / 2, 0.2f), random.Next(30, 160));
+        }
+        
+        Queue<PerlinWorm> worms = new Queue<PerlinWorm>();
+        
         for (int i = 0; i <= numWorms; i++)
         {
-            worm = new PerlinWorm(new Vector3(random.Next(0, WorldWidth * 16), random.Next(10, highestY + 1), (random.Next(0, WorldDepth * 16))), 0, 0, random.Next(2, 4), MathF.Min(random.NextSingle() / 2, 0.2f));
-            
-            steps = random.Next(30, 160);
+            worms.Enqueue(createWorm());
+        }
+
+        while (worms.Count > 0)
+        {
+            PerlinWorm worm = worms.Dequeue();
             ClearBlocksInRadius(worm.Position, worm.Size);
-            for (int j = 0; j < steps; j++)
+            while (worm.StepsLeft > 0)
             {
                 worm.Step(random);
                 ClearBlocksInRadius(worm.Position, worm.Size);
+
+                if (worm.CanDuplicate && random.NextSingle() <= ExtraWormChance)
+                {
+                    PerlinWorm newWorm = createWorm();
+                    newWorm.CanDuplicate = false;
+                    newWorm.Position = worm.Position;
+                    worms.Enqueue(newWorm);
+                }
             }
         }
         
