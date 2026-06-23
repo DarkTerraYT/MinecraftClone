@@ -8,6 +8,7 @@ public class Face(VertexPositionColorNormalTexture[] vertices, Face.Direction di
 {
     public enum Direction
     {
+        None,
         Front,
         Back,
         Left,

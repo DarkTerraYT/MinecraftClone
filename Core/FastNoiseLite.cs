@@ -145,12 +145,26 @@ public class FastNoiseLite
     private TransformType3D mWarpTransformType3D = TransformType3D.DefaultOpenSimplex2;
     private float mDomainWarpAmp = 1.0f;
 
+    public FastNoiseLite()
+    {
+        
+    }
+    
     /// <summary>
-    /// Create new FastNoise object with optional seed
+    /// Create new FastNoise object with optional noise type.
     /// </summary>
-    public FastNoiseLite(int seed = 1337)
+    public FastNoiseLite(FastNoiseLite.NoiseType noiseType = FastNoiseLite.NoiseType.OpenSimplex2)
+    {
+        mNoiseType = noiseType;
+    }
+    
+    /// <summary>
+    /// Create new FastNoise object with optional seed and noise type.
+    /// </summary>
+    public FastNoiseLite(int seed = 1337, NoiseType noiseType = NoiseType.OpenSimplex2)
     {
         SetSeed(seed);
+        mNoiseType = noiseType;
     }
 
     /// <summary>

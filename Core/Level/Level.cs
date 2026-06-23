@@ -8,13 +8,18 @@ namespace MinecraftClone.Core.Level;
 public class Level: IDrawable, IDirtyable
 {
     public Dictionary<Point, Chunk.Chunk> Chunks = new(9);
+    public Player Player;
 
+    private Random random = new();
+    
     private FastNoiseLite noise;
 
     private const int SeaLevel = 60;
 
-    private const int WorldWidth = 5;
-    private const int WorldDepth = 5;
+    private const int WorldWidth = 24;
+    private const int WorldDepth = 24;
+
+    private const float CaveThreshold = 0.05f;
     
     public bool TryGetBlock(Vector3Int worldPos, out BlockState block)
     {
@@ -34,18 +39,22 @@ public class Level: IDrawable, IDirtyable
 
             return false;
         }
-        else
-        {
-            block = null;
-            return false;
-        }
+
+        block = null;
+        return false;
     }
     
     public Level()
     {
+        var stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
         noise = new FastNoiseLite();
         noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+
+        int highestY = 0;
         
+        
+        // Basic gen pass
         for (int i = 0; i < WorldWidth; i++)
         {
             for (int j = 0; j < WorldDepth; j++)
@@ -57,19 +66,21 @@ public class Level: IDrawable, IDirtyable
                     for (int z = 0; z < 16; z++)
                     {
                         int yOffset = (int)(noise.GetNoise(x + (i * 16), z + (j * 16)) * 3);
+                        if (yOffset + SeaLevel > highestY)
+                        {
+                            highestY = yOffset + SeaLevel;
+                            logger.Debug(highestY);
+                        }
                         for (int y = 0; y < SeaLevel + yOffset; y++)
                         {
-                            float y2 = noise.GetNoise(x + (i * 16), y, z + (j * 16));
-                            
-                            if (y2 > 0.75f)
-                                continue;
-                            
-                            if (y < SeaLevel - 4 + yOffset)
-                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Cobblestone));
+                            if (y < 1 + random.Next(0, 3)) 
+                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Bedrock, new Vector3(x + (i * 16), y, z + (j * 16))));
+                            else if (y < SeaLevel - 4 + yOffset)
+                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Stone, new Vector3(x + (i * 16), y, z + (j * 16))));
                             else if (y < SeaLevel - 1 + yOffset)
-                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Dirt));
+                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Dirt, new Vector3(x + (i * 16), y, z + (j * 16))));
                             else 
-                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.GrassBlock));
+                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.GrassBlock, new Vector3(x + (i * 16), y, z + (j * 16))));
                         }
                     }
                 }
@@ -77,8 +88,121 @@ public class Level: IDrawable, IDirtyable
                 Chunks.Add(new Point(i, j), chunk);
             }
         }
+        
+        // Worm Cave pass
+        PerlinWorm worm = new PerlinWorm(new Vector3(WorldWidth / 2.0f * 16, highestY, WorldDepth / 2.0f * 16), 0, 0, 3, 0.33f);
+        int steps = random.Next(7, 14);
+        ClearBlocksInRadius(worm.Position, worm.Size);
+        for (int j = 0; j < steps; j++)
+        {
+            worm.Step(random);
+            ClearBlocksInRadius(worm.Position, worm.Size);
+        }
+
+        int worldSize = WorldWidth * WorldDepth;
+        int numWorms = worldSize / 4;
+
+        for (int i = 0; i <= numWorms; i++)
+        {
+            worm = new PerlinWorm(new Vector3(random.Next(0, WorldWidth * 16), random.Next(10, highestY + 1), (random.Next(0, WorldDepth * 16))), 0, 0, random.Next(2, 4), MathF.Min(random.NextSingle() / 2, 0.2f));
+            
+            steps = random.Next(30, 160);
+            ClearBlocksInRadius(worm.Position, worm.Size);
+            for (int j = 0; j < steps; j++)
+            {
+                worm.Step(random);
+                ClearBlocksInRadius(worm.Position, worm.Size);
+            }
+        }
+        
+        // Blobish cave pass
+        FastNoiseLite noise2 = new FastNoiseLite(FastNoiseLite.NoiseType.Perlin);
+
+        for (int x = 0; x < WorldWidth * 16; x++)
+        {
+            for (int z = 0; z < WorldDepth * 16; z++)
+            {
+                for (int y = 0; y < highestY + 1; y++)
+                {
+                    float chance = (noise.GetNoise(x + noise2.GetNoise(z, random.NextSingle()) * 100, y, z + noise2.GetNoise(x, random.NextSingle()) * 100) + 1) / 2;
+                    chance *= GetCaveChance(y);
+
+                    
+                    if (chance <= CaveThreshold)
+                    {
+                        SetBlock(new Vector3Int(x, y, z), null);
+                    }
+                }
+            }
+        }
+        
+        
+        
+        int total = WorldWidth * WorldDepth;
+        stopwatch.Stop();
+        double time = stopwatch.Elapsed.TotalSeconds;
+        long ms = stopwatch.ElapsedMilliseconds;
+        logger.Log($"Generated {WorldWidth}x{WorldDepth} ({total}) chunks in {time}s, for an average of {ms / total} ms per chunk.");
+        
+        Player = new Player(new Vector3(WorldWidth / 2.0f * 16, 4 + SeaLevel, WorldDepth / 2.0f * 16));
     }
 
+    private float GetCaveChance(int y)
+    {
+        return -0.0002f * (y - 50) * (y - 50) + 1;
+    }
+    
+    public void SetBlock(Vector3Int worldPos, BlockState block)
+    {
+        int chunkX = worldPos.X / 16;
+        int chunkY = worldPos.Z / 16;
+
+        if (Chunks.TryGetValue(new Point(chunkX, chunkY), out Chunk.Chunk chunk))
+        {
+            int blockLocalX = worldPos.X % 16;
+            int blockLocalZ = worldPos.Z % 16;
+            int blockLocalY = worldPos.Y;
+
+            if (chunk.TryGetBlock(new Vector3(blockLocalX, blockLocalY, blockLocalZ), out var block2))
+            {
+                if (block2.Block == Minecraft.Instance.Bedrock)
+                    return;
+            }
+            
+            chunk.SetBlock(new Vector3(blockLocalX, blockLocalY, blockLocalZ), block);
+        }
+    }
+    
+    private void ClearBlocksInRadius(Vector3Int worldPos, int radius)
+    { 
+        int radiusSquared = radius * radius;
+        
+        int centerX = worldPos.X;
+        int centerZ = worldPos.Z;
+        int centerY = worldPos.Y;
+
+        for (int x = -radius; x < radius + 1; x++)
+        {
+            int blockX = centerX + x;
+                
+            int maxY = (int)Math.Sqrt(radiusSquared - x * x);
+
+            for (int y = -maxY; y < maxY + 1; y++)
+            {
+                int blockY = centerY + y;
+                    
+                int maxZ = (int)Math.Sqrt(radiusSquared - y * y);
+
+                for (int z = -maxZ; z < maxZ + 1; z++)
+                {
+                    int blockZ = centerZ + z;
+
+                    SetBlock(new Vector3Int(blockX, blockY, blockZ), null);
+                }
+            }
+        }
+    }
+    
     private Logger logger = new Logger("Level");
     
     public void Draw(GameTime gameTime)

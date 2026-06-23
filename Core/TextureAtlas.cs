@@ -201,9 +201,12 @@ public sealed class TextureAtlas : IDirtyable
         column++;
         if (column >= columns)
         {
+            logger.Log("Go to next row.");
             column = 0;
-            rows++;
+            row++;
         }
+        
+        logger.Log($"{column}, {row}");
         
         MarkDirty();
         

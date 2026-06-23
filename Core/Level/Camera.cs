@@ -106,6 +106,10 @@ public class Camera : IDirtyable
         }
         return rotationMatrix;
     }
+    public Matrix GetHorizontalRotationMatrix()
+    {
+        return Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(Yaw), 0, 0.0f);
+    }
     
     public Matrix GetViewMatrix()
     {

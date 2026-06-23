@@ -16,11 +16,6 @@ namespace MinecraftClone.Core;
 
 public class Minecraft : Game
 {
-    public enum CameraMode
-    {
-        FreeCamera,
-        FirstPerson
-    }
     
     private GraphicsDeviceManager _graphics;
     public SpriteBatch SpriteBatch;
@@ -34,8 +29,6 @@ public class Minecraft : Game
     SpriteFont font;
     
     private bool orbit;
-    
-    private Camera camera;
 
     //private Mesh<VertexPositionColorNormalTexture> cubeAll;
     
@@ -54,7 +47,7 @@ public class Minecraft : Game
         Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnWindowResized;
         
-        TargetElapsedTime = TimeSpan.FromMilliseconds(1.0f);
+        TargetElapsedTime = TimeSpan.FromMilliseconds(1f);
         modLoader = new ModLoader();
     }
 
@@ -71,13 +64,16 @@ public class Minecraft : Game
     {
         Instance = this;
         Logger.Log("Initializing Minecraft...");
-        camera = new Camera(new Vector3(2, 80, 20), 0f, 0);
+        
         basicEffect = new BasicEffect(_graphics.GraphicsDevice);
         basicEffect.Alpha = 1;
         basicEffect.TextureEnabled = true;
         basicEffect.VertexColorEnabled = true;
         basicEffect.LightingEnabled = true;
-        basicEffect.FogEnabled = false;
+        basicEffect.FogEnabled = true;
+        basicEffect.FogColor = Color32.FromHex("#c0d8ff").ToVector3();
+        basicEffect.FogStart = 64.0f; // At 16 render distance, fog starts 4 chunks away (16x4 = 64)
+        basicEffect.FogEnd = 256.0f; // At 16 render distance, fog ends 16 chunks away (16x16 = 256)
         basicEffect.AmbientLightColor = ambientLightColor;
         basicEffect.DirectionalLight0.Enabled = true;
         basicEffect.DirectionalLight0.Direction = new Vector3(1, -2, -0.35f);
@@ -95,7 +91,7 @@ public class Minecraft : Game
 
     private void OnWindowResized(object sender, EventArgs e)
     {
-        camera?.MarkDirty();
+        Level.Player.camera?.MarkDirty();
     }
 
     private float averageFPS;
@@ -103,13 +99,17 @@ public class Minecraft : Game
     
     
     private static Identifier cobblestoneId = Identifier.WithDefaultNamespace("cobblestone");
+    private static Identifier stoneId = Identifier.WithDefaultNamespace("stone");
     private static Identifier dirtId  = Identifier.WithDefaultNamespace("dirt");
     private static Identifier grassSideId  = Identifier.WithDefaultNamespace("grass_block_side");
     private static Identifier grassTopId  = Identifier.WithDefaultNamespace("grass_block_top");
     private static Identifier grassId  = Identifier.WithDefaultNamespace("grass");
+    private static Identifier bedrockId  = Identifier.WithDefaultNamespace("bedrock");
     public Block Cobblestone;
+    public Block Stone;
     public Block Dirt;
     public Block GrassBlock;
+    public Block Bedrock;
     
     protected override void LoadContent()
     {
@@ -118,16 +118,22 @@ public class Minecraft : Game
         
         Atlas = new TextureAtlas(Identifier.WithDefaultNamespace("atlas"), 16, 4, 4); // Start with a max of 16 textures
         Atlas.AddTexture(Content.Load<Texture2D>("textures/cobblestone"), cobblestoneId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/stone"), stoneId);
         Atlas.AddTexture(Content.Load<Texture2D>("textures/dirt"), dirtId);
         Atlas.AddTexture(Content.Load<Texture2D>("textures/grass_block_side"), grassSideId);
         Atlas.AddTexture(Content.Load<Texture2D>("textures/grass_block_top"), grassTopId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/bedrock"), bedrockId);
         
         Dirt = new Block(Model.CubeAll(Vector3.Zero, Vector3.One, dirtId, Color.White, dirtId));
         Cobblestone = new Block(Model.CubeAll(Vector3.Zero, Vector3.One, cobblestoneId, Color.White, cobblestoneId));
         GrassBlock = new Block(Model.CubeBottomTopSides(Vector3.Zero, Vector3.One, grassTopId,dirtId, grassSideId, Color.White, grassId));
-
+        Stone = new Block(Model.CubeAll(Vector3.Zero, Vector3.One, stoneId, Color.White, stoneId));
+        Bedrock = new Block(Model.CubeAll(Vector3.Zero, Vector3.One, bedrockId, Color.White, bedrockId));
+        
         Level = new();
     }
+    
+    private static readonly SamplerState UISamplerState = SamplerState.PointClamp;
     
     protected override void UnloadContent()
     {
@@ -148,6 +154,8 @@ public class Minecraft : Game
     KeyboardState newKeyboardState;
     
     public TextureAtlas Atlas;
+
+    public readonly Color SkyColor = Color32.FromHex("#6EB1FF");
     
     protected override void Update(GameTime gameTime)
     {
@@ -170,8 +178,8 @@ public class Minecraft : Game
                 float mouseDeltaX = currentMouseState.X - oldMouseState.X;
                 float mouseDeltaY = currentMouseState.Y - oldMouseState.Y;
 
-                camera.Yaw += mouseDeltaX * camera.CameraSensitivity;
-                camera.Pitch += mouseDeltaY * camera.CameraSensitivity;
+                Level.Player.camera.Yaw += mouseDeltaX * Level.Player.camera.CameraSensitivity;
+                Level.Player.camera.Pitch += mouseDeltaY * Level.Player.camera.CameraSensitivity;
 
                 if (currentMouseState.X < 0 || currentMouseState.Y < 0 ||
                     currentMouseState.X > GraphicsDevice.Viewport.Width ||
@@ -199,35 +207,11 @@ public class Minecraft : Game
                 IsMouseVisible = true;
             }
             
-            Vector3 movementVector = new Vector3(0, 0, 0);
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-            {
-                movementVector += new Vector3(0, 0, -1);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-            {
-                movementVector += new Vector3(0, 0, 1);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
-                movementVector += new Vector3(-1, 0, 0);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-            {
-                movementVector += new Vector3(1, 0, 0);
-            }
-
+            Level.Player.Update(gameTime);
+            
             if (KeyDown(Keys.OemPlus))
             {
                 showAtlas = !showAtlas;
-            }
-
-            if (movementVector != Vector3.Zero)
-            {
-                movementVector = Vector3.Normalize(movementVector);
-                movementVector = Vector3.TransformNormal(movementVector, camera.GetRotationMatrix());
-
-                camera.Position += movementVector * dt * movementSpeed;
             }
             
             ModLoader.Instance.UpdateAllMods(gameTime);
@@ -243,10 +227,11 @@ public class Minecraft : Game
 
     FrameCounter frameCounter = new();
     
-    private bool KeyDown(Keys key)
+    public bool KeyDown(Keys key)
     {
         return newKeyboardState.IsKeyDown(key) && oldKeyboardState.IsKeyUp(key);
-    }private bool KeyUp(Keys key)
+    }
+    public bool KeyUp(Keys key)
     {
         return newKeyboardState.IsKeyUp(key) && oldKeyboardState.IsKeyDown(key);
     }
@@ -277,8 +262,8 @@ public class Minecraft : Game
         
         GraphicsDevice.SamplerStates[0] = samplerState;
         
-        basicEffect.Projection = camera.GetProjectionMatrix();
-        basicEffect.View = camera.GetViewMatrix();
+        basicEffect.Projection = Level.Player.camera.GetProjectionMatrix();
+        basicEffect.View = Level.Player.camera.GetViewMatrix();
         basicEffect.Texture = Atlas._renderTarget;
         
         /*foreach (WorldObject worldObject in worldObjects)
@@ -304,15 +289,17 @@ public class Minecraft : Game
             GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, indexBuffer.IndexCount / 3);
         }*/
         
-        SpriteBatch.Begin();
+        SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, UISamplerState);
         // FPS Counter
         SpriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString("F1"), new Vector2(0, 0), Color.White);
-        SpriteBatch.DrawString(font, camera.Position.ToString(), new Vector2(0, 15), Color.White);
-        SpriteBatch.DrawString(font, $"yaw: {camera.Yaw}, pitch: {camera.Pitch}", new Vector2(0, 30), Color.White);
+        SpriteBatch.DrawString(font, Level.Player.camera.Position.ToString(), new Vector2(0, 15), Color.White);
+        SpriteBatch.DrawString(font, $"yaw: {Level.Player.camera.Yaw}, pitch: {Level.Player.camera.Pitch}", new Vector2(0, 30), Color.White);
+        SpriteBatch.DrawString(font, $"velocity: {Level.Player.Velocity}", new Vector2(0, 45), Color.White);
         // Atlas
         if (showAtlas)
         {
-            SpriteBatch.Draw(Atlas._renderTarget, new Rectangle(0, 0, Atlas.AtlasWidth, Atlas.AtlasHeight), Color.White);
+            Logger.Log(new Point(Atlas.AtlasWidth, Atlas.AtlasHeight));
+            SpriteBatch.Draw(Atlas._renderTarget, new Rectangle(0, 0, Atlas.AtlasWidth, Atlas.AtlasWidth), Color.White);
         }
         
         SpriteBatch.End();
