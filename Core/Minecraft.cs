@@ -167,7 +167,6 @@ public class Minecraft : Game
             {
                 mouseLocked = !mouseLocked;
             }
-            
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (mouseLocked)
@@ -178,12 +177,12 @@ public class Minecraft : Game
                 float mouseDeltaX = currentMouseState.X - oldMouseState.X;
                 float mouseDeltaY = currentMouseState.Y - oldMouseState.Y;
 
-                Level.Player.camera.Yaw += mouseDeltaX * Level.Player.camera.CameraSensitivity;
-                Level.Player.camera.Pitch += mouseDeltaY * Level.Player.camera.CameraSensitivity;
+                Level.Player.camera.Yaw -= mouseDeltaX * Level.Player.camera.CameraSensitivity;
+                Level.Player.camera.Pitch -= mouseDeltaY * Level.Player.camera.CameraSensitivity;
 
-                if (currentMouseState.X < 0 || currentMouseState.Y < 0 ||
-                    currentMouseState.X > GraphicsDevice.Viewport.Width ||
-                    currentMouseState.Y > GraphicsDevice.Viewport.Height)
+                if (currentMouseState.X < 10 || currentMouseState.Y < 10 ||
+                    currentMouseState.X > GraphicsDevice.Viewport.Width - 10||
+                    currentMouseState.Y > GraphicsDevice.Viewport.Height - 10)
                 {
                     Mouse.SetPosition(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2);
                     oldMouseState = new MouseState(

@@ -154,11 +154,11 @@ public sealed class TextureAtlas : IDirtyable
     {
         if (rows * columns + column < nodesById.Count) return;
         
-        Logger.Global.Debug("Resizing atlas " + Id);
+        logger.Debug("Resizing atlas " + Id);
         columns = (int)Math.Ceiling((Math.Sqrt(nodesById.Count)));
         rows = (int)Math.Ceiling((double)nodesById.Count / columns);
         
-        Logger.Global.Debug($"New size: indexes({columns},{rows}) size:({AtlasWidth},{AtlasHeight})" );
+        logger.Debug($"New size: indexes({columns},{rows}) size:({AtlasWidth},{AtlasHeight})" );
 
         _renderTarget?.Dispose();
         _renderTarget = new RenderTarget2D(Minecraft.Instance.GraphicsDevice, rows * SpriteSize, columns * SpriteSize, Mip, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
@@ -193,7 +193,7 @@ public sealed class TextureAtlas : IDirtyable
             return textureNode;
         }
         
-        Logger.Global.Debug("Adding texture " + name);
+        logger.Debug("Adding texture " + name);
         
         textureNode.PixelCoords = new Point(column * SpriteSize, row * SpriteSize);
         textureNode.CalculateUv(new Point(AtlasWidth, AtlasHeight));

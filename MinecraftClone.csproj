@@ -4,7 +4,7 @@
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
-        <OutputType>Dll</OutputType>
+        <OutputType>WinExe</OutputType>
     </PropertyGroup>
     <PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
         <ApplicationManifest>app.manifest</ApplicationManifest>

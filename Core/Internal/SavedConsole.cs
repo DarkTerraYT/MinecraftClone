@@ -27,6 +27,15 @@ internal class SavedConsole : TextWriter
         _fileWriter.AutoFlush = true;
     }
 
+    public override void Write(string value)
+    {
+        _consoleWriter.Write(value);
+        if (value != null && !value.Contains("[DEBUG]"))
+        {
+            _fileWriter.Write(value);
+        }
+    }
+
     public override void Write(char value)
     {
         _consoleWriter.Write(value);
