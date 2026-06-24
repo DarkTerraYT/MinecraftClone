@@ -11,8 +11,8 @@ public class Chunk : IDisposable
     public const int Width = 16;
     public const int Height = 16;
     public const int Depth = 16;
-    
-    public BlockState[,,] Blocks { get; set; }
+
+    private ushort[] Blocks;
 
     public readonly Vector3Int Position;
 
@@ -21,7 +21,7 @@ public class Chunk : IDisposable
     public Chunk(Vector3Int position)
     {
         Position = position;
-        Blocks = new BlockState[Width, Height, Depth];
+        Blocks = new ushort[Width + Height * Width + Depth * Width * Height];
     }
 
     public bool TryGetBlockWorld(Vector3Int localPosition, out BlockState block)
@@ -29,16 +29,18 @@ public class Chunk : IDisposable
         return Minecraft.Instance.Level.TryGetBlock(Position + localPosition, out block);
     }
     
+    private int ToArrayIndex(Vector3Int localPosition) => localPosition.X + localPosition.Y * Width + localPosition.Z *  Width * Height;
+    
     public bool TryGetBlock(Vector3Int localPosition, out BlockState block)
     {
         if (localPosition.X >= Width || localPosition.Z >= Depth || localPosition.Y >= Height || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
         {
-            block = null;
+            block = default;
             return false;
         }
         
         block = GetBlock(localPosition);
-        if (block == null)
+        if (block.IsAir())
         {
             return false;
         }
@@ -47,10 +49,10 @@ public class Chunk : IDisposable
 
     public BlockState GetBlock(Vector3Int localPosition)
     {
-        return Blocks[localPosition.X, localPosition.Y, localPosition.Z];
+        return new BlockState(Blocks[ToArrayIndex(localPosition)], Position + localPosition);
     }
 
-    public void SetBlock(Vector3Int localPosition, BlockState block)
+    public void SetBlock(Vector3Int localPosition, Block block)
     {
         if (localPosition.X >= Width || localPosition.Z >= Depth || localPosition.Y >= Height || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
         {
@@ -59,7 +61,7 @@ public class Chunk : IDisposable
         
         //Minecraft.Instance.Logger.Debug($"Setting block at {localPosition}");
         
-        Blocks[localPosition.X, localPosition.Y, localPosition.Z] = block;
+        Blocks[ToArrayIndex(localPosition)] = Minecraft.Instance.Level.GetIdOrRegister(block);
     }
 
     private void Draw(Effect effect)

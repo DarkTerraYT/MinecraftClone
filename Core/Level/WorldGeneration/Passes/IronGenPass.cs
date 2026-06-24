@@ -27,7 +27,7 @@ public class IronGenPass : GenPass
                         {
                             if (block.Block == Minecraft.Instance.Stone)
                             {
-                                level.SetBlock(new Vector3Int(x, y, z), new BlockState(Minecraft.Instance.IronOre, new Vector3(x, y, z), level));
+                                level.SetBlock(new Vector3Int(x, y, z), Minecraft.Instance.CoalOre);
                             }
                         }
                     }

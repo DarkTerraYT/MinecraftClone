@@ -3,14 +3,18 @@ using MinecraftClone.Core.Numerics;
 
 namespace MinecraftClone.Core.Level;
 
-public class BlockState : WorldObject
+public struct BlockState(ushort id, Vector3Int worldPos)
 {
-    public BlockState(Block block, Vector3 position, Level level) : base(position, BoxCollider.Full, level)
-    {
-        Block = block;
-    }
-    
-    public Vector3Int ChunkPosition;
+    public ushort BlockId { get; set; } = id;
 
-    public Block Block;
+    public Vector3Int WorldPosition { get; set; } = worldPos;
+
+    public bool IsAir() => BlockId == 0;
+    public bool Test(Block block) => BlockId == Minecraft.Instance.Level.GetIdOrRegister(block);
+
+    public Block Block => Minecraft.Instance.Level.GetBlock(BlockId);
+
+    public bool Intersects(WorldObject other) => CollisionBox.Intersects(other.CollisionBox);
+
+    public BoxCollider CollisionBox => Block.Collider;
 }

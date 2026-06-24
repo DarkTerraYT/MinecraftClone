@@ -22,7 +22,34 @@ public class Level: IDrawable, IDirtyable
 
     public const int WorldWidth = 8;
     public const int WorldDepth = 8;
-    public const int WorldHeight = 16;
+    public const int WorldHeight = 4;
+
+    private ushort nextBlockId = 1;
+    
+    private Dictionary<Identifier, ushort> blockIdToId = new Dictionary<Identifier, ushort>();
+    private Dictionary<ushort, Block> idToBlock = new Dictionary<ushort, Block>();
+
+    public ushort GetIdOrRegister(Block block)
+    {
+        if (block == null) return 0;
+        if (!blockIdToId.TryGetValue(block.Id, out var id))
+        {
+            id = nextBlockId++;
+            blockIdToId.Add(block.Id, id);
+            idToBlock.Add(id, block);
+        }
+
+        return id;
+    }
+
+    public Block GetBlock(ushort block)
+    {
+        if (!idToBlock.TryGetValue(block, out var id))
+        {
+            throw new ArgumentException("No block found with id " + block);
+        }
+        return idToBlock[block];
+    } 
 
     private int highestY;
     public int HighestY => highestY;
@@ -67,21 +94,21 @@ public class Level: IDrawable, IDirtyable
                                 
                                 if (worldY < 1 + Random.Next(1, 3))
                                 {
-                                    SetBlock(worldPos, new BlockState(Minecraft.Instance.Bedrock, worldPos, this));
+                                    SetBlock(worldPos, Minecraft.Instance.Bedrock);
                                     continue;
                                 }
                                 if (worldY < surface - 4)
                                 {
-                                    SetBlock(worldPos, new BlockState(Minecraft.Instance.Stone, worldPos, this));
+                                    SetBlock(worldPos, Minecraft.Instance.Stone);
                                     continue;
                                 }
                                 if (worldY < surface)
                                 {
-                                    SetBlock(worldPos, new BlockState(Minecraft.Instance.Dirt, worldPos, this));
+                                    SetBlock(worldPos, Minecraft.Instance.Dirt);
                                     continue;
                                 }
                                 
-                                SetBlock(worldPos, new BlockState(Minecraft.Instance.GrassBlock, worldPos, this));
+                                SetBlock(worldPos, Minecraft.Instance.GrassBlock);
                             }
                         }
                     }
@@ -95,16 +122,20 @@ public class Level: IDrawable, IDirtyable
             pass.Pass(this, noise);
         }
         
+        int total = WorldWidth * WorldDepth * WorldHeight;
+        double time = stopwatch.Elapsed.TotalSeconds;
+        stopwatch.Reset();
+        logger.Log($"Generated {WorldWidth}x{WorldDepth}x{WorldHeight} ({total}) chunks in {time}s, for an average of {time * 1000 / total:F2} ms per chunk.");
+        stopwatch.Start();
+        
         // Generate chunk meshes
         foreach (var chunk in Chunks.Values)
         {
             chunk.Update(ChunkUpdateFlags.All);
         }
         
-        
-        int total = WorldWidth * WorldDepth * WorldHeight;
         stopwatch.Stop();
-        double time = stopwatch.Elapsed.TotalSeconds;
+        time = stopwatch.Elapsed.TotalSeconds;
         logger.Log($"Generated {WorldWidth}x{WorldDepth}x{WorldHeight} ({total}) chunks in {time}s, for an average of {time * 1000 / total:F2} ms per chunk.");
         
         Player = new Player(new Vector3(WorldWidth / 2.0f * 16, 4 + SeaLevel, WorldDepth / 2.0f * 16), this);
@@ -135,7 +166,7 @@ public class Level: IDrawable, IDirtyable
             return false;
         }
 
-        block = null;
+        block = default;
         return false;
     }
     
@@ -175,7 +206,7 @@ public class Level: IDrawable, IDirtyable
             {
                 for (int y = minY; y <= maxY; y++)
                 {
-                    if (TryGetBlock(new  Vector3Int(x, y, z), out BlockState block) && block.Collidable)
+                    if (TryGetBlock(new  Vector3Int(x, y, z), out BlockState block) && !block.IsAir())
                         blocks.Add(block);
                 }
             }
@@ -184,7 +215,7 @@ public class Level: IDrawable, IDirtyable
         return blocks;
     }
     
-    public void SetBlock(Vector3Int worldPos, BlockState block, ChunkUpdateFlags updateFlags = ChunkUpdateFlags.None)
+    public void SetBlock(Vector3Int worldPos, Block block, ChunkUpdateFlags updateFlags = ChunkUpdateFlags.None)
     {
         if (TryGetChunk(worldPos, out Chunk chunk))
         {
@@ -194,7 +225,7 @@ public class Level: IDrawable, IDirtyable
 
             if (chunk.TryGetBlock(new Vector3(blockLocalX, blockLocalY, blockLocalZ), out var block2))
             {
-                if (block2.Block == Minecraft.Instance.Bedrock)
+                if (block2.Test(Minecraft.Instance.Bedrock))
                     return;
             }
             

@@ -7,15 +7,16 @@ namespace MinecraftClone.Core.World;
 
 public class Mesh<T> : IDisposable where T : struct
 {
-    public T[] Vertices;
-    public ushort[] Indices;
-
+    private int IndexCount = 0;
+    private int VertexCount = 0;
+    
     private VertexBuffer vertexBuffer;
     private IndexBuffer indexBuffer;
 
     private GraphicsDevice GraphicsDevice;
 
-    public bool Empty => Vertices.Length == 0 || Indices.Length == 0;
+    public bool Empty =>
+        VertexCount == 0 || IndexCount == 0 || vertexBuffer == null || indexBuffer == null;
 
 
     public void Draw(Effect effect)
@@ -42,68 +43,66 @@ public class Mesh<T> : IDisposable where T : struct
         }
     }
 
-    public void Update()
+    public void Update(T[] vertices, ushort[] indices)
     {
-        if (Empty) return;
+        VertexCount = vertices.Length;
+        IndexCount = indices.Length;
+        if (VertexCount == 0 || IndexCount == 0) return;
         
-        vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(T), Vertices.Length, BufferUsage.WriteOnly);
-        vertexBuffer.SetData(Vertices);
+        vertexBuffer ??= new VertexBuffer(GraphicsDevice, typeof(T), vertices.Length, BufferUsage.WriteOnly);
+        vertexBuffer.SetData(vertices);
         indexBuffer = new IndexBuffer(GraphicsDevice,
             typeof(ushort),
-            Indices.Length,
+            indices.Length,
             BufferUsage.WriteOnly);
-        indexBuffer.SetData(Indices);
+        indexBuffer.SetData(indices);
     }
 
-    public void StripVertexes()
+    private static ushort[] StripVertexes(T[] vertices, out T[] newVertices)
     {
-        
-        Indices = new ushort[Vertices.Length];
+        var indices = new ushort[vertices.Length];
         List<T> vertexList = new List<T>();
         Dictionary<T, ushort> vertexToIndex = new Dictionary<T, ushort>();
-        for (int i = 0; i < Vertices.Length; i++)
+        for (int i = 0; i < vertices.Length; i++)
         {
-            T vertex = Vertices[i];
+            T vertex = vertices[i];
             if (vertexToIndex.TryGetValue(vertex, out ushort index))
             {
-                Indices[i] = index;
+                indices[i] = index;
             }
             else
             {
                 ushort newIndex = (ushort)vertexList.Count;
                 vertexToIndex.Add(vertex, newIndex);
                 vertexList.Add(vertex);
-                Indices[i] = newIndex;
+                indices[i] = newIndex;
             }
         }
-        
-        Vertices = vertexList.ToArray();
+        newVertices = vertexList.ToArray();
+        return indices;
     }
     
     public Mesh(T[] vertices, ushort[] indices, bool indexed = true, bool strip = false)
     {
-        Vertices = vertices;
-        Indices = indices;
-
         GraphicsDevice = Minecraft.Instance.GraphicsDevice;
 
         if (strip && indexed)
         {
-            StripVertexes();
+            indices = StripVertexes(vertices, out vertices);
         }
-        else if (indexed && Indices.Length == 0)
+        else if (indexed && indices.Length == 0)
         {
             Minecraft.Instance.Logger.Warn("Index mesh with empty indices list!");
         }
         else if (!indexed)
         {
-            for (ushort i = 0; i < Vertices.Length; i++)
+            for (ushort i = 0; i < vertices.Length; i++)
             {
-                Indices[i] = i;
+                indices[i] = i;
             }
         }
         
-        Update();
+        Update(vertices, indices);
     }
 
     public void Dispose()

@@ -33,12 +33,12 @@ public static class ChunkGenerator
                         Vector3Int worldPos = new Vector3Int(x, y, z) + chunk.Position;
 
 
-                        BlockState front = null;
-                        BlockState back = null;
-                        BlockState right = null;
-                        BlockState left = null;
-                        BlockState top = null;
-                        BlockState bottom = null;
+                        BlockState front = default;
+                        BlockState back = default;
+                        BlockState right = default;
+                        BlockState left = default;
+                        BlockState top = default;
+                        BlockState bottom = default;
                         bool hasFrontNeighbor = z > 0 ? chunk.TryGetBlock(new Vector3Int(x, y, z - 1), out front)
                             : frontChunkNeighbor && neighborFront.TryGetBlock(new Vector3Int(x, y, Chunk.Depth - 1), out front);
                         bool hasBackNeighbor = z < Chunk.Depth - 1 ? chunk.TryGetBlock(new Vector3Int(x, y, z + 1), out back)
