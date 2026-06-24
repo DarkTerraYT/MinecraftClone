@@ -9,4 +9,9 @@ public static class Vector3Ext
     {
         return v / 16;
     }
+
+    public static string ToString(this Vector3 v, string format)
+    {
+        return "{" + v.X.ToString(format) + ", " + v.Y.ToString(format) + ", " + v.Z.ToString(format) + "}";
+    }
 }

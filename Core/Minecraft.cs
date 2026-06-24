@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MinecraftClone.Core.Debug;
+using MinecraftClone.Core.Extension;
 using MinecraftClone.Core.Level;
 using MinecraftClone.Core.Level.Chunk;
 using MinecraftClone.Core.World;
@@ -167,7 +168,7 @@ public class Minecraft : Game
             {
                 mouseLocked = !mouseLocked;
             }
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (mouseLocked)
             {
@@ -290,10 +291,10 @@ public class Minecraft : Game
         
         SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, UISamplerState);
         // FPS Counter
-        SpriteBatch.DrawString(font, frameCounter.AverageFramesPerSecond.ToString("F1"), new Vector2(0, 0), Color.White);
-        SpriteBatch.DrawString(font, Level.Player.camera.Position.ToString(), new Vector2(0, 15), Color.White);
-        SpriteBatch.DrawString(font, $"yaw: {Level.Player.camera.Yaw}, pitch: {Level.Player.camera.Pitch}", new Vector2(0, 30), Color.White);
-        SpriteBatch.DrawString(font, $"velocity: {Level.Player.Velocity}", new Vector2(0, 45), Color.White);
+        SpriteBatch.DrawString(font, "FPS: " + frameCounter.AverageFramesPerSecond.ToString("F1"), new Vector2(2, 2), Color.White);
+        SpriteBatch.DrawString(font, "Position: " + Level.Player.camera.Position.ToString("F1"), new Vector2(2, 17), Color.White);
+        SpriteBatch.DrawString(font, $"yaw: {Level.Player.camera.Yaw:F0}, pitch: {Level.Player.camera.Pitch:F0}", new Vector2(2, 32), Color.White);
+        SpriteBatch.DrawString(font, $"velocity: {Level.Player.Velocity.ToString("F1")}", new Vector2(2, 47), Color.White);
         // Atlas
         if (showAtlas)
         {

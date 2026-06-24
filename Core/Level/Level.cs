@@ -75,13 +75,13 @@ public class Level: IDrawable, IDirtyable
                         for (int y = 0; y < SeaLevel + yOffset; y++)
                         {
                             if (y < 1 + random.Next(0, 3)) 
-                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Bedrock, new Vector3(x + (i * 16), y, z + (j * 16))));
+                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Bedrock, new Vector3(x + (i * 16), y, z + (j * 16)), this));
                             else if (y < SeaLevel - 4 + yOffset)
-                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Stone, new Vector3(x + (i * 16), y, z + (j * 16))));
+                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Stone, new Vector3(x + (i * 16), y, z + (j * 16)), this));
                             else if (y < SeaLevel - 1 + yOffset)
-                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Dirt, new Vector3(x + (i * 16), y, z + (j * 16))));
+                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.Dirt, new Vector3(x + (i * 16), y, z + (j * 16)), this));
                             else 
-                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.GrassBlock, new Vector3(x + (i * 16), y, z + (j * 16))));
+                                chunk.SetBlock(new Vector3Int(x,y,z), new BlockState(Minecraft.Instance.GrassBlock, new Vector3(x + (i * 16), y, z + (j * 16)), this));
                         }
                     }
                 }
@@ -157,9 +157,53 @@ public class Level: IDrawable, IDirtyable
         long ms = stopwatch.ElapsedMilliseconds;
         logger.Log($"Generated {WorldWidth}x{WorldDepth} ({total}) chunks in {time}s, for an average of {ms / total} ms per chunk.");
         
-        Player = new Player(new Vector3(WorldWidth / 2.0f * 16, 4 + SeaLevel, WorldDepth / 2.0f * 16));
+        Player = new Player(new Vector3(WorldWidth / 2.0f * 16, 4 + SeaLevel, WorldDepth / 2.0f * 16), this);
     }
 
+    public List<BlockState> GetBlocksInArea(Vector3Int min, Vector3Int max)
+    {
+        List<BlockState> blocks = new List<BlockState>();
+        
+        for (int x = min.X; x <= max.X; x++)
+        {
+            for (int z = min.Z; z <= max.Z; z++)
+            {
+                for (int y = min.Y; y <= max.Y; y++)
+                {
+                    if (TryGetBlock(new  Vector3Int(x, y, z), out BlockState block))
+                        blocks.Add(block);
+                }
+            }
+        }
+        
+        return blocks;
+    }
+    public List<BlockState> GetCollidableBlocksInArea(BoxCollider box)
+    {
+        List<BlockState> blocks = new List<BlockState>();
+        
+        int minX = (int)Math.Floor(box.WorldMin.X);
+        int maxX = (int)box.WorldMax.X;
+        int minZ = (int)Math.Floor(box.WorldMin.Z);
+        int maxZ = (int)box.WorldMax.Z;
+        int minY = (int)Math.Floor(box.WorldMin.Y);
+        int maxY = (int)box.WorldMax.Y;
+        
+        for (int x = minX; x <= maxX; x++)
+        {
+            for (int z = minZ; z <= maxZ; z++)
+            {
+                for (int y = minY; y <= maxY; y++)
+                {
+                    if (TryGetBlock(new  Vector3Int(x, y, z), out BlockState block) && block.Collidable)
+                        blocks.Add(block);
+                }
+            }
+        }
+        
+        return blocks;
+    }
+    
     private float GetCaveChance(int y)
     {
         return -0.0002f * (y - 50) * (y - 50) + 1;

@@ -5,7 +5,7 @@ namespace MinecraftClone.Core.Level;
 
 public class BlockState : WorldObject
 {
-    public BlockState(Block block, Vector3 position) : base(position, CubeShape.Full)
+    public BlockState(Block block, Vector3 position, Level level) : base(position, BoxCollider.Full, level)
     {
         Block = block;
     }
