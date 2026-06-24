@@ -7,7 +7,7 @@ namespace MinecraftClone.Core.Level;
 
 public class Level: IDrawable, IDirtyable
 {
-    public Dictionary<Point, Chunk.Chunk> Chunks = new(9);
+    public Dictionary<Point, Chunk> Chunks = new(9);
     public Player Player;
 
     private Random random = new(0);
@@ -27,7 +27,7 @@ public class Level: IDrawable, IDirtyable
         int chunkX = worldPos.X / 16;
         int chunkY = worldPos.Z / 16;
 
-        if (Chunks.TryGetValue(new Point(chunkX, chunkY), out Chunk.Chunk chunk))
+        if (Chunks.TryGetValue(new Point(chunkX, chunkY), out Chunk chunk))
         {
             int blockLocalX = worldPos.X % 16;
             int blockLocalZ = worldPos.Z % 16;
@@ -47,6 +47,8 @@ public class Level: IDrawable, IDirtyable
     
     public Level()
     {
+        Minecraft.Instance.Level = this;
+        
         var stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
         noise = new FastNoiseLite();
@@ -60,7 +62,7 @@ public class Level: IDrawable, IDirtyable
         {
             for (int j = 0; j < WorldDepth; j++)
             {
-                Chunk.Chunk chunk = new Chunk.Chunk(new Vector3Int(i * 16, 0, j * 16));
+                Chunk chunk = new Chunk(new Vector3Int(i * 16, 0, j * 16));
                 
                 for (int x = 0; x < 16; x++)
                 {
@@ -149,6 +151,12 @@ public class Level: IDrawable, IDirtyable
             }
         }
         
+        // Generate chunk meshes
+
+        foreach (var chunk in Chunks.Values)
+        {
+            chunk.Update(ChunkUpdateFlags.All);
+        }
         
         
         int total = WorldWidth * WorldDepth;
@@ -209,12 +217,12 @@ public class Level: IDrawable, IDirtyable
         return -0.0002f * (y - 50) * (y - 50) + 1;
     }
     
-    public void SetBlock(Vector3Int worldPos, BlockState block)
+    public void SetBlock(Vector3Int worldPos, BlockState block, ChunkUpdateFlags updateFlags = ChunkUpdateFlags.None)
     {
         int chunkX = worldPos.X / 16;
         int chunkY = worldPos.Z / 16;
 
-        if (Chunks.TryGetValue(new Point(chunkX, chunkY), out Chunk.Chunk chunk))
+        if (Chunks.TryGetValue(new Point(chunkX, chunkY), out Chunk chunk))
         {
             int blockLocalX = worldPos.X % 16;
             int blockLocalZ = worldPos.Z % 16;
@@ -227,6 +235,7 @@ public class Level: IDrawable, IDirtyable
             }
             
             chunk.SetBlock(new Vector3(blockLocalX, blockLocalY, blockLocalZ), block);
+            chunk.Update(updateFlags);
         }
     }
     
@@ -266,7 +275,7 @@ public class Level: IDrawable, IDirtyable
     {
         foreach (var chunk in Chunks.Values)
         {
-            chunk.Draw(gameTime);
+            chunk.Draw();
         }
     }
 

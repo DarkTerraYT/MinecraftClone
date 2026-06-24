@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MinecraftClone.Core.World;
 using MinecraftClone.Core.Numerics;
+using MinecraftClone.Core.World;
 
-namespace MinecraftClone.Core.Level.Chunk;
+namespace MinecraftClone.Core.Level;
 
 public static class ChunkGenerator
 {
@@ -28,7 +28,8 @@ public static class ChunkGenerator
                         
                         Vector3 worldPos = new Vector3(worldX, worldY, worldZ);
 
-                        bool cullFront = chunk.TryGetBlockWorld(new Vector3Int(x, worldY, z - 1), out var front) && !front.Block.NonCulledFaces.Contains(Face.Direction.Front);
+                        bool cullFront = chunk.TryGetBlockWorld(new Vector3Int(x, worldY, z - 1), out var front)
+                                         && !front.Block.NonCulledFaces.Contains(Face.Direction.Front);
                         bool cullBack = chunk.TryGetBlockWorld(new Vector3Int(x, worldY, z + 1), out var back) && !back.Block.NonCulledFaces.Contains(Face.Direction.Back);
                         bool cullRight = chunk.TryGetBlockWorld(new Vector3Int(x - 1, worldY, z), out var right) && !right.Block.NonCulledFaces.Contains(Face.Direction.Right);
                         bool cullLeft = chunk.TryGetBlockWorld(new Vector3Int(x + 1, worldY, z), out var left) && !left.Block.NonCulledFaces.Contains(Face.Direction.Left);

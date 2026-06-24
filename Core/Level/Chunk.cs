@@ -1,20 +1,18 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MinecraftClone.Core.World;
 using MinecraftClone.Core.Numerics;
+using MinecraftClone.Core.World;
 
-namespace MinecraftClone.Core.Level.Chunk;
+namespace MinecraftClone.Core.Level;
 
-public class Chunk : IDisposable, IDrawable
+public class Chunk : IDisposable
 {
     public BlockState[,,] Blocks { get; set; }
 
     public readonly Vector3Int Position;
 
     private Mesh<VertexPositionColorNormalTexture> mesh; // Position, Color, UV
-    
-    private bool updated = true;
     
     public Chunk(Vector3Int position)
     {
@@ -58,28 +56,26 @@ public class Chunk : IDisposable, IDrawable
         //Minecraft.Instance.Logger.Debug($"Setting block at {localPosition}");
         
         Blocks[localPosition.X, localPosition.Y, localPosition.Z] = block;
-        updated = true;
     }
 
     private void Draw(Effect effect)
     {
-        if (updated)
-        {
-            mesh = ChunkGenerator.GenerateChunkMesh(this);
-            updated = false;
-        }
-        
         mesh.Draw(effect);
     }
 
+    public void Draw() => Draw(Minecraft.Instance.BasicEffect);
+
+    public void Update(ChunkUpdateFlags flags)
+    {
+        if (flags.HasFlag(ChunkUpdateFlags.OpaqueMesh))
+        {
+            mesh = ChunkGenerator.GenerateChunkMesh(this);
+        }
+    }
+    
     public void Dispose()
     {
         mesh?.Dispose();
-    }
-
-    public void Draw(GameTime gameTime)
-    {
-        Draw(Minecraft.Instance.BasicEffect);
     }
 
     public int DrawOrder { get; }

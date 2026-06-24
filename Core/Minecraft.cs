@@ -7,7 +7,6 @@ using Microsoft.Xna.Framework.Input;
 using MinecraftClone.Core.Debug;
 using MinecraftClone.Core.Extension;
 using MinecraftClone.Core.Level;
-using MinecraftClone.Core.Level.Chunk;
 using MinecraftClone.Core.World;
 using MinecraftClone.Core.Mods;
 using MinecraftClone.Core.Numerics;
