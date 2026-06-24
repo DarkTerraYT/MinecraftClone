@@ -15,7 +15,7 @@ public class Player : Entity
         FirstPerson
     }
     
-    public Player(Vector3 position, Level level) : base(position, new BoxCollider(new Vector3(0.6f, 2, 0.6f), Vector3.Zero), level)
+    public Player(Vector3 position, Level level) : base(position, new BoxCollider(new Vector3(0.6f, 1.8f, 0.6f), Vector3.Zero), level)
     {
         camera = new Camera(Position, 0f, 0);
     }
