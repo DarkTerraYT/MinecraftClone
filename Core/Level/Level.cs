@@ -20,9 +20,9 @@ public class Level: IDrawable, IDirtyable
 
     private const int SeaLevel = 60;
 
-    public const int WorldWidth = 32;
-    public const int WorldDepth = 32;
-    public const int WorldHeight = 4;
+    public const int WorldWidth = 8;
+    public const int WorldDepth = 8;
+    public const int WorldHeight = 16;
 
     private int highestY;
     public int HighestY => highestY;
@@ -89,7 +89,7 @@ public class Level: IDrawable, IDirtyable
             }
         }
         
-        // Other cave passes
+        // Other passes
         foreach (GenPass pass in Minecraft.Instance.GenPasses.OrderBy(pass => pass.Order))
         {
             pass.Pass(this, noise);

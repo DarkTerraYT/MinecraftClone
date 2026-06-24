@@ -22,11 +22,10 @@ public class Model
 
     public Identifier Id;
 
-    public static Model CubeAll(Vector3 from, Vector3 to, Identifier textureId, Color tint, Identifier id)
+    public static Model CubeAll(Identifier textureId, Color tint, Identifier id)
     {
-        Vector3 min = new Vector3(Math.Min(from.X, to.X), Math.Min(from.Y, to.Y), Math.Min(from.Z, to.Z));
-        Vector3 max = new Vector3(Math.Max(from.X, to.X), Math.Max(from.Y, to.Y), Math.Max(from.Z, to.Z));
-
+        Vector3 min = Vector3.Zero;
+        Vector3 max = Vector3.One;
 
         Model model = new Model(id);
         // Front
