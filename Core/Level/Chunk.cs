@@ -8,6 +8,10 @@ namespace MinecraftClone.Core.Level;
 
 public class Chunk : IDisposable
 {
+    public const int Width = 16;
+    public const int Height = 16;
+    public const int Depth = 16;
+    
     public BlockState[,,] Blocks { get; set; }
 
     public readonly Vector3Int Position;
@@ -17,7 +21,7 @@ public class Chunk : IDisposable
     public Chunk(Vector3Int position)
     {
         Position = position;
-        Blocks = new BlockState[16, 255, 16];
+        Blocks = new BlockState[Width, Height, Depth];
     }
 
     public bool TryGetBlockWorld(Vector3Int localPosition, out BlockState block)
@@ -27,7 +31,7 @@ public class Chunk : IDisposable
     
     public bool TryGetBlock(Vector3Int localPosition, out BlockState block)
     {
-        if (localPosition.X >= 16 || localPosition.Z >= 16 || localPosition.Y >= 255 || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
+        if (localPosition.X >= Width || localPosition.Z >= Depth || localPosition.Y >= Height || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
         {
             block = null;
             return false;
@@ -48,7 +52,7 @@ public class Chunk : IDisposable
 
     public void SetBlock(Vector3Int localPosition, BlockState block)
     {
-        if (localPosition.X >= 16 || localPosition.Z >= 16 || localPosition.Y >= 255 || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
+        if (localPosition.X >= Width || localPosition.Z >= Depth || localPosition.Y >= Height || localPosition.X < 0 || localPosition.Z < 0 || localPosition.Y < 0)
         {
             return;
         }
@@ -72,7 +76,8 @@ public class Chunk : IDisposable
             mesh = ChunkGenerator.GenerateChunkMesh(this);
         }
     }
-    
+
+    public override string ToString() => $"Chunk {Position / 16}";
     public void Dispose()
     {
         mesh?.Dispose();

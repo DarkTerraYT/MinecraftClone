@@ -6,5 +6,5 @@ namespace MinecraftClone.Core;
 public class Block(Model model)
 {
     public Model Model = model;
-    public HashSet<Face.Direction> NonCulledFaces = [];
+    public CullDirection CulledFaces = CullDirection.All;
 }

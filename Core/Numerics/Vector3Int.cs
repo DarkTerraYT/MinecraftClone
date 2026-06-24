@@ -31,9 +31,17 @@ public struct Vector3Int(int x, int y, int z) : IEquatable<Vector3Int>
     {
         return new Vector3Int(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
     }
+    public static Vector3Int operator * (Vector3Int left, int right)
+    {
+        return new Vector3Int(left.X * right, left.Y * right, left.Z * right);
+    }
     public static Vector3Int operator / (Vector3Int left, Vector3Int right)
     {
         return new Vector3Int(left.X / right.X, left.Y / right.Y, left.Z / right.Z);
+    }
+    public static Vector3Int operator / (Vector3Int left, int right)
+    {
+        return new Vector3Int(left.X / right, left.Y / right, left.Z / right);
     }
     
     public static implicit operator Vector3(Vector3Int v)

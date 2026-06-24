@@ -22,7 +22,6 @@ public class Mesh<T> : IDisposable where T : struct
     {
         if (Empty)
         {
-            Minecraft.Instance.Logger.Error("Tried to draw empty mesh");
             return;
         }
         try
@@ -80,8 +79,6 @@ public class Mesh<T> : IDisposable where T : struct
         
         Vertices = vertexList.ToArray();
     }
-
-    private static int totalVertices = 0;
     
     public Mesh(T[] vertices, ushort[] indices, bool indexed = true, bool strip = false)
     {
@@ -90,7 +87,6 @@ public class Mesh<T> : IDisposable where T : struct
 
         GraphicsDevice = Minecraft.Instance.GraphicsDevice;
 
-        totalVertices += Vertices.Length;
         if (strip && indexed)
         {
             StripVertexes();
@@ -106,9 +102,6 @@ public class Mesh<T> : IDisposable where T : struct
                 Indices[i] = i;
             }
         }
-        
-        Logger.Global.Debug("Generated a mesh with " + (indexed ? $"{Vertices.Length} unique vertices and {Indices.Length} total vertices." : $"{Vertices.Length} vertices."));
-        Logger.Global.Debug("With a total number of vertices of " + totalVertices);
         
         Update();
     }

@@ -29,4 +29,9 @@ public abstract class Mod
     {
         
     }
+
+    public virtual void LoadContent()
+    {
+        
+    }
 }

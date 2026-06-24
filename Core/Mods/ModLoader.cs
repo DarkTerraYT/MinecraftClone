@@ -74,6 +74,14 @@ public class ModLoader
             logger.Error($"Failed to load mod {file}: {e}");
         }
     }
+
+    internal void LoadModContent()
+    {
+        foreach (var mod in _mods)
+        {
+            mod.LoadContent();
+        }
+    }
     
     internal void UpdateAllMods(GameTime gameTime)
     {

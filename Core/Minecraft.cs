@@ -7,6 +7,8 @@ using Microsoft.Xna.Framework.Input;
 using MinecraftClone.Core.Debug;
 using MinecraftClone.Core.Extension;
 using MinecraftClone.Core.Level;
+using MinecraftClone.Core.Level.WorldGeneration;
+using MinecraftClone.Core.Level.WorldGeneration.Passes;
 using MinecraftClone.Core.World;
 using MinecraftClone.Core.Mods;
 using MinecraftClone.Core.Numerics;
@@ -111,6 +113,8 @@ public class Minecraft : Game
     public Block GrassBlock;
     public Block Bedrock;
     
+    public List<GenPass> GenPasses = new List<GenPass>();
+    
     protected override void LoadContent()
     {
         SpriteBatch = new SpriteBatch(GraphicsDevice);
@@ -129,6 +133,9 @@ public class Minecraft : Game
         GrassBlock = new Block(Model.CubeBottomTopSides(Vector3.Zero, Vector3.One, grassTopId,dirtId, grassSideId, Color.White, grassId));
         Stone = new Block(Model.CubeAll(Vector3.Zero, Vector3.One, stoneId, Color.White, stoneId));
         Bedrock = new Block(Model.CubeAll(Vector3.Zero, Vector3.One, bedrockId, Color.White, bedrockId));
+        
+        GenPasses.Add(new WormCavePass());
+        GenPasses.Add(new BlobCavePass());
         
         Level = new();
     }
