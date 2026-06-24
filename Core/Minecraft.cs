@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MinecraftClone.Core.Debug;
 using MinecraftClone.Core.Extension;
 using MinecraftClone.Core.Level;
 using MinecraftClone.Core.Level.WorldGeneration;
