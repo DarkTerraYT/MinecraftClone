@@ -8,6 +8,8 @@ public abstract class GenPass : IComparable<GenPass>
     public const int CAVES = 100;
     
     public abstract int Order { get; }
+    
+    public virtual string Name => GetType().Name;
 
     public abstract void Pass(Level level, FastNoiseLite globalNoise);
     

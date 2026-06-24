@@ -20,8 +20,8 @@ public class Level: IDrawable, IDirtyable
 
     private const int SeaLevel = 60;
 
-    public const int WorldWidth = 8;
-    public const int WorldDepth = 8;
+    public const int WorldWidth = 64;
+    public const int WorldDepth = 64;
     public const int WorldHeight = 4;
 
     private ushort nextBlockId = 1;
@@ -116,16 +116,20 @@ public class Level: IDrawable, IDirtyable
             }
         }
         
+        Logger.Log("Finished generating base chunks!");
+        
         // Other passes
         foreach (GenPass pass in Minecraft.Instance.GenPasses.OrderBy(pass => pass.Order))
         {
+            Logger.Log("Start pass " + pass.Name);
             pass.Pass(this, noise);
+            Logger.Log("Finished pass " + pass.Name);
         }
         
         int total = WorldWidth * WorldDepth * WorldHeight;
         double time = stopwatch.Elapsed.TotalSeconds;
         stopwatch.Reset();
-        logger.Log($"Generated {WorldWidth}x{WorldDepth}x{WorldHeight} ({total}) chunks in {time}s, for an average of {time * 1000 / total:F2} ms per chunk.");
+        Logger.Log($"Generated {WorldWidth}x{WorldDepth}x{WorldHeight} ({total}) chunks in {time}s, for an average of {time * 1000 / total:F2} ms per chunk.");
         stopwatch.Start();
         
         // Generate chunk meshes
@@ -136,7 +140,7 @@ public class Level: IDrawable, IDirtyable
         
         stopwatch.Stop();
         time = stopwatch.Elapsed.TotalSeconds;
-        logger.Log($"Generated {WorldWidth}x{WorldDepth}x{WorldHeight} ({total}) chunks in {time}s, for an average of {time * 1000 / total:F2} ms per chunk.");
+        Logger.Log($"Generated {WorldWidth}x{WorldDepth}x{WorldHeight} ({total}) chunks in {time}s, for an average of {time * 1000 / total:F2} ms per chunk.");
         
         Player = new Player(new Vector3(WorldWidth / 2.0f * 16, 4 + SeaLevel, WorldDepth / 2.0f * 16), this);
     }
@@ -264,7 +268,7 @@ public class Level: IDrawable, IDirtyable
         }
     }
     
-    private Logger logger = new Logger("Level");
+    public Logger Logger = new Logger("Level");
     
     public void Draw(GameTime gameTime)
     {

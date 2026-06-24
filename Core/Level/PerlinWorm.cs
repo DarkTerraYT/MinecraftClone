@@ -48,4 +48,9 @@ public struct PerlinWorm(Vector3 pos, float yaw, float pitch, int size, float gr
         }
         StepsLeft--;
     }
+
+    public override string ToString()
+    {
+        return "PerlinWorm {" + $"Position: {Position}, Yaw: {Yaw}, Pitch: {Pitch}, GravityBias: {GravityBias}, StepsLeft: {StepsLeft}, Size: {Size}" + "}";
+    }
 }

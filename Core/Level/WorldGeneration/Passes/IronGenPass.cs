@@ -10,18 +10,33 @@ public class IronGenPass : GenPass
     
     public override int Order => ORES + 5; // Do Iron last as it's the most common
     public override void Pass(Level level, FastNoiseLite globalNoise)
-    {
-        FastNoiseLite noise = new FastNoiseLite(level.Seed ^ -1955584132, FastNoiseLite.NoiseType.Cellular); // Merge the two seeds
+    {FastNoiseLite noise = new FastNoiseLite(level.Seed ^ -1095584316, FastNoiseLite.NoiseType.Cellular); // Merge the two seeds
 
+        int maxZ = Level.WorldDepth * Chunk.Depth;
+        int maxY = Level.WorldHeight * Chunk.Height;
+        
+        float[] warpX = new float[maxZ];
+        for (int z = 0; z < maxZ; z++) {
+            warpX[z] = globalNoise.GetNoise(z, 0);
+        }
+
+        float[] warpZ = new float[maxY];
+        for (int y = 0; y < maxY; y++) {
+            warpZ[y] = globalNoise.GetNoise(y, 0);
+        }
+        
+        float adjustedThreshold = (IronThreshold * 2.0f) - 1.0f;
+        
         for (int x = 0; x < Level.WorldWidth * Chunk.Width; x++)
         {
-            for (int y = 0; y < Level.WorldDepth * Chunk.Height; y++)
+            for (int y = 0; y < maxY; y++)
             {
-                for (int z = 0; z < Level.WorldDepth * Chunk.Width; z++)
+                float sample = y * IronFrequency;
+                for (int z = 0; z < maxZ; z++)
                 {
-                    float result = (noise.GetNoise((x + globalNoise.GetNoise(z, 0)) * IronFrequency, y * IronFrequency, (z + globalNoise.GetNoise(y, 0)) * IronFrequency) + 1) / 2.0f;
+                    float result = noise.GetNoise((x + warpX[z]) * IronFrequency, sample, (z + warpZ[y]) * IronFrequency);
 
-                    if (result <= IronThreshold)
+                    if (result <= adjustedThreshold)
                     {
                         if (level.TryGetBlock(new Vector3Int(x, y, z), out BlockState block))
                         {

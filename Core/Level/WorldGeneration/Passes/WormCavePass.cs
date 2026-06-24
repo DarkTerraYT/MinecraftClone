@@ -7,6 +7,7 @@ namespace MinecraftClone.Core.Level.WorldGeneration.Passes;
 public class WormCavePass : GenPass
 {
     private const float ExtraWormChance = 0.01f;
+    private const int MaxDupesPerWorm = 3;
     
     public override int Order => CAVES;
     public override void Pass(Level level, FastNoiseLite globalNoise)
@@ -20,21 +21,25 @@ public class WormCavePass : GenPass
             worms.Enqueue(CreateWorm(level));
         }
 
+        level.Logger.Log($"Generating at least {worms.Count} Worms.");
+        
         while (worms.Count > 0)
         {
             PerlinWorm worm = worms.Dequeue();
             level.ClearBlocksInRadius(worm.Position, worm.Size);
+            int dupes = 0;
             while (worm.StepsLeft > 0)
             {
                 worm.Step(level.Random);
                 level.ClearBlocksInRadius(worm.Position, worm.Size);
 
-                if (worm.CanDuplicate && level.Random.NextSingle() <= ExtraWormChance)
+                if (worm.CanDuplicate && level.Random.NextSingle() <= ExtraWormChance && dupes < MaxDupesPerWorm)
                 {
                     PerlinWorm newWorm = CreateWorm(level);
                     newWorm.CanDuplicate = false;
                     newWorm.Position = worm.Position;
                     worms.Enqueue(newWorm);
+                    dupes++;
                 }
             }
         }

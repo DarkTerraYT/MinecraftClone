@@ -13,15 +13,31 @@ public class CoalGenPass : GenPass
     {
         FastNoiseLite noise = new FastNoiseLite(level.Seed ^ -1095584316, FastNoiseLite.NoiseType.Cellular); // Merge the two seeds
 
+        int maxZ = Level.WorldDepth * Chunk.Depth;
+        int maxY = Level.WorldHeight * Chunk.Height;
+        
+        float[] warpX = new float[maxZ];
+        for (int z = 0; z < maxZ; z++) {
+            warpX[z] = globalNoise.GetNoise(z, 0);
+        }
+
+        float[] warpZ = new float[maxY];
+        for (int y = 0; y < maxY; y++) {
+            warpZ[y] = globalNoise.GetNoise(y, 0);
+        }
+        
+        float adjustedThreshold = (CoalThreshold * 2.0f) - 1.0f;
+        
         for (int x = 0; x < Level.WorldWidth * Chunk.Width; x++)
         {
-            for (int y = 0; y < Level.WorldDepth * Chunk.Height; y++)
+            for (int y = 0; y < maxY; y++)
             {
-                for (int z = 0; z < Level.WorldDepth * Chunk.Width; z++)
+                float sample = y * CoalFrequency;
+                for (int z = 0; z < maxZ; z++)
                 {
-                    float result = (noise.GetNoise((x + globalNoise.GetNoise(z, 0)) * CoalFrequency, y * CoalFrequency, (z + globalNoise.GetNoise(y, 0)) * CoalFrequency) + 1) / 2.0f;
+                    float result = noise.GetNoise((x + warpX[z]) * CoalFrequency, sample, (z + warpZ[y]) * CoalFrequency);
 
-                    if (result <= CoalThreshold)
+                    if (result <= adjustedThreshold)
                     {
                         if (level.TryGetBlock(new Vector3Int(x, y, z), out BlockState block))
                         {

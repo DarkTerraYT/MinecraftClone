@@ -151,7 +151,7 @@ public class Minecraft : Game
         GenPasses.Add(new WormCavePass());
         GenPasses.Add(new BlobCavePass());
         GenPasses.Add(new CoalGenPass());
-        GenPasses.Add(new IronGenPass());
+        //GenPasses.Add(new IronGenPass());
         
         Level = new();
     }
