@@ -33,10 +33,7 @@ public class Entity : WorldObject, IUpdateable
                         Position = new Vector3(block.CollisionBox.WorldMax.X, Position.Y,
                             Position.Z);
                     }
-
-                    Velocity.X = 0;
                 }
-                break;
             }
 
             // Then move on Y 

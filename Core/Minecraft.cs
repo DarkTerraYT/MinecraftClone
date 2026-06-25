@@ -49,7 +49,7 @@ public class Minecraft : Game
         Window.ClientSizeChanged += OnWindowResized;
         
         _graphics.SynchronizeWithVerticalRetrace = false;
-        TargetElapsedTime = TimeSpan.FromMilliseconds(0.1);
+        TargetElapsedTime = TimeSpan.FromMilliseconds(1);
         modLoader = new ModLoader();
     }
 
@@ -57,9 +57,6 @@ public class Minecraft : Game
     {
         Window.ClientSizeChanged -= OnWindowResized;
     }
-    
-    private Chunk chunk;
-
     
     private Vector3 ambientLightColor = new Vector3(0.6f, 0.6f, 0.6f);
     protected override void Initialize()
@@ -111,6 +108,9 @@ public class Minecraft : Game
     private static Identifier ironOreId  = Identifier.WithDefaultNamespace("iron_ore");
     private static Identifier goldOreId  = Identifier.WithDefaultNamespace("gold_ore");
     private static Identifier diamondOreId  = Identifier.WithDefaultNamespace("diamond_ore");
+    private static Identifier redstoneOreId  = Identifier.WithDefaultNamespace("redstone_ore");
+    private static Identifier lapisOreId  = Identifier.WithDefaultNamespace("lapis_ore");
+    private static Identifier emeraldOreId  = Identifier.WithDefaultNamespace("emerald_ore");
     public Block Cobblestone;
     public Block Stone;
     public Block Dirt;
@@ -120,6 +120,9 @@ public class Minecraft : Game
     public Block IronOre;
     public Block GoldOre;
     public Block DiamondOre;
+    public Block RedstoneOre;
+    public Block LapisOre;
+    public Block EmeraldOre;
     
     public List<GenPass> GenPasses = new List<GenPass>();
     
@@ -136,9 +139,12 @@ public class Minecraft : Game
         Atlas.AddTexture(Content.Load<Texture2D>("textures/grass_block_top"), grassTopId);
         Atlas.AddTexture(Content.Load<Texture2D>("textures/bedrock"), bedrockId);
         Atlas.AddTexture(Content.Load<Texture2D>("textures/coal_ore"), coalOreId);
-        //Atlas.AddTexture(Content.Load<Texture2D>("textures/iron_ore"), ironOreId);
-        //Atlas.AddTexture(Content.Load<Texture2D>("textures/gold_ore"), coalOreId);
-        //Atlas.AddTexture(Content.Load<Texture2D>("textures/diamond_ore"), ironOreId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/iron_ore"), ironOreId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/gold_ore"), goldOreId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/diamond_ore"), diamondOreId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/redstone_ore"), redstoneOreId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/lapis_ore"), lapisOreId);
+        Atlas.AddTexture(Content.Load<Texture2D>("textures/emerald_ore"), emeraldOreId);
         
         Dirt = new Block(Model.CubeAll(dirtId, Color.White, dirtId));
         Cobblestone = new Block(Model.CubeAll(cobblestoneId, Color.White, cobblestoneId));
@@ -146,12 +152,22 @@ public class Minecraft : Game
         Stone = new Block(Model.CubeAll(stoneId, Color.White, stoneId));
         Bedrock = new Block(Model.CubeAll(bedrockId, Color.White, bedrockId));
         CoalOre = new Block(Model.CubeAll(coalOreId, Color.White, coalOreId));
-        IronOre = new Block(Model.CubeAll(coalOreId, Color.White, coalOreId));
+        IronOre = new Block(Model.CubeAll(ironOreId, Color.White, ironOreId));
+        GoldOre = new Block(Model.CubeAll(goldOreId, Color.White, goldOreId));
+        DiamondOre = new Block(Model.CubeAll(diamondOreId, Color.White, diamondOreId));
+        RedstoneOre = new Block(Model.CubeAll(redstoneOreId, Color.White, redstoneOreId));
+        LapisOre = new Block(Model.CubeAll(lapisOreId, Color.White, lapisOreId));
+        EmeraldOre = new Block(Model.CubeAll(emeraldOreId, Color.White, emeraldOreId));
         
         GenPasses.Add(new WormCavePass());
         GenPasses.Add(new BlobCavePass());
         GenPasses.Add(new CoalGenPass());
-        //GenPasses.Add(new IronGenPass());
+        GenPasses.Add(new IronGenPass());
+        GenPasses.Add(new GoldOrePass());
+        GenPasses.Add(new DiamondOrePass());
+        GenPasses.Add(new RedstoneOrePass());
+        GenPasses.Add(new LapisOrePass());
+        GenPasses.Add(new EmeraldOrePass());
         
         Level = new();
     }
@@ -179,6 +195,8 @@ public class Minecraft : Game
     public TextureAtlas Atlas;
 
     public readonly Color SkyColor = Color32.FromHex("#6EB1FF");
+
+    private bool hideStone = false;
     
     protected override void Update(GameTime gameTime)
     {
@@ -234,6 +252,15 @@ public class Minecraft : Game
             if (KeyDown(Keys.OemPlus))
             {
                 showAtlas = !showAtlas;
+            }
+
+            if (KeyUp(Keys.OemMinus))
+            {
+                hideStone = !hideStone;
+                foreach (var chunk in Level.Chunks.Values)
+                {
+                    chunk.Update(ChunkUpdateFlags.All, hideStone ? Stone : null);
+                }
             }
             
             ModLoader.Instance.UpdateAllMods(gameTime);

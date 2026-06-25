@@ -16,5 +16,18 @@ public struct BlockState(ushort id, Vector3Int worldPos)
 
     public bool Intersects(WorldObject other) => CollisionBox.Intersects(other.CollisionBox);
 
-    public BoxCollider CollisionBox => Block.Collider;
+    private BoxCollider collider;
+
+    public BoxCollider CollisionBox
+    {
+        get
+        {
+            if (collider == null)
+            {
+                collider = Block.Collider.Clone();
+                collider.Position = WorldPosition;
+            }
+            return collider;
+        }
+    }
 }

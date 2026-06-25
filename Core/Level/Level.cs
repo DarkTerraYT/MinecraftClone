@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MinecraftClone.Core.Level.WorldGeneration;
@@ -18,11 +19,11 @@ public class Level: IDrawable, IDirtyable
     
     private FastNoiseLite noise;
 
-    private const int SeaLevel = 60;
+    public const int SeaLevel = 60;
 
-    public const int WorldWidth = 64;
-    public const int WorldDepth = 64;
-    public const int WorldHeight = 4;
+    public const int WorldWidth = 16;
+    public const int WorldDepth = 16;
+    public const int WorldHeight = 6;
 
     private ushort nextBlockId = 1;
     
@@ -118,12 +119,14 @@ public class Level: IDrawable, IDirtyable
         
         Logger.Log("Finished generating base chunks!");
         
+        Stopwatch genPassStopwatch = new Stopwatch();
         // Other passes
         foreach (GenPass pass in Minecraft.Instance.GenPasses.OrderBy(pass => pass.Order))
         {
             Logger.Log("Start pass " + pass.Name);
+            genPassStopwatch.Restart();
             pass.Pass(this, noise);
-            Logger.Log("Finished pass " + pass.Name);
+            Logger.Log("Finished pass " + pass.Name + " in " + genPassStopwatch.Elapsed.TotalSeconds + " seconds.");
         }
         
         int total = WorldWidth * WorldDepth * WorldHeight;
@@ -210,8 +213,10 @@ public class Level: IDrawable, IDirtyable
             {
                 for (int y = minY; y <= maxY; y++)
                 {
-                    if (TryGetBlock(new  Vector3Int(x, y, z), out BlockState block) && !block.IsAir())
+                    if (TryGetBlock(new Vector3Int(x, y, z), out BlockState block))
+                    {
                         blocks.Add(block);
+                    }
                 }
             }
         }

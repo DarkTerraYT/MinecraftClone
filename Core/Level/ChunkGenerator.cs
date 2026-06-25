@@ -9,7 +9,7 @@ namespace MinecraftClone.Core.Level;
 public static class ChunkGenerator
 {
     private static Logger Logger = new Logger("Chunk Generator");
-    public static Mesh<VertexPositionColorNormalTexture> GenerateChunkMesh(Chunk chunk)
+    public static Mesh<VertexPositionColorNormalTexture> GenerateChunkMesh(Chunk chunk, Block ignoredBlock = null)
     {
         List<VertexPositionColorNormalTexture> allFaces = new List<VertexPositionColorNormalTexture>();
         var level = Minecraft.Instance.Level;
@@ -28,10 +28,10 @@ public static class ChunkGenerator
             {
                 for (int z = 0; z < Chunk.Depth; z++)
                 {
-                    if (chunk.TryGetBlock(new Vector3Int(x, y, z), out BlockState block))
+                    BlockState block = chunk.GetBlock(new Vector3(x, y, z));
+                    if (!block.IsAir() && !block.Test(ignoredBlock))
                     {
                         Vector3Int worldPos = new Vector3Int(x, y, z) + chunk.Position;
-
 
                         BlockState front = default;
                         BlockState back = default;
@@ -56,12 +56,12 @@ public static class ChunkGenerator
 
                         foreach (var face in block.Block.Model.Faces)
                         {
-                            if (face.FaceDirection == Face.Direction.Front && hasFrontNeighbor && (front.Block.CulledFaces & CullDirection.Front) != 0) continue;
-                            if (face.FaceDirection == Face.Direction.Back && hasBackNeighbor && (back.Block.CulledFaces & CullDirection.Back) != 0) continue;
-                            if (face.FaceDirection == Face.Direction.Left && hasLeftNeighbor && (left.Block.CulledFaces & CullDirection.Left) != 0) continue;
-                            if (face.FaceDirection == Face.Direction.Right && hasRightNeighbor && (right.Block.CulledFaces & CullDirection.Right) != 0) continue;
-                            if (face.FaceDirection == Face.Direction.Top && hasTopNeighbor && (top.Block.CulledFaces & CullDirection.Top) != 0) continue;
-                            if (face.FaceDirection == Face.Direction.Bottom && hasBottomNeighbor && (bottom.Block.CulledFaces & CullDirection.Bottom) != 0) continue;
+                            if (face.FaceDirection == Face.Direction.Front && hasFrontNeighbor && (front.Block.CulledFaces & CullDirection.Front) != 0 && !front.Test(ignoredBlock)) continue;
+                            if (face.FaceDirection == Face.Direction.Back && hasBackNeighbor && (back.Block.CulledFaces & CullDirection.Back) != 0 && !back.Test(ignoredBlock)) continue;
+                            if (face.FaceDirection == Face.Direction.Left && hasLeftNeighbor && (left.Block.CulledFaces & CullDirection.Left) != 0 && !left.Test(ignoredBlock)) continue;
+                            if (face.FaceDirection == Face.Direction.Right && hasRightNeighbor && (right.Block.CulledFaces & CullDirection.Right) != 0 && !right.Test(ignoredBlock)) continue;
+                            if (face.FaceDirection == Face.Direction.Top && hasTopNeighbor && (top.Block.CulledFaces & CullDirection.Top) != 0 && !top.Test(ignoredBlock)) continue;
+                            if (face.FaceDirection == Face.Direction.Bottom && hasBottomNeighbor && (bottom.Block.CulledFaces & CullDirection.Bottom) != 0 && !bottom.Test(ignoredBlock)) continue;
                             
                             allFaces.AddRange(face.WithOffset(worldPos).Vertices);
                         }

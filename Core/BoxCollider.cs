@@ -4,12 +4,12 @@ using MinecraftClone.Core.World;
 
 namespace MinecraftClone.Core;
 
-public class BoxCollider
+public class BoxCollider(Vector3 max, Vector3 position)
 {
-    public Vector3 Min { get; }
-    public Vector3 Max { get; }
-    public Vector3 Position { get; set; }
-    
+    public Vector3 Min { get; } = Vector3.Zero;
+    public Vector3 Max { get; } = max;
+    public Vector3 Position { get; set; } = position;
+
     public float Width => Max.X - Min.X;
     public float Height => Max.Y - Min.Y;
     public float Depth => Max.Z - Min.Z;
@@ -17,13 +17,6 @@ public class BoxCollider
     public Vector3 WorldMin => Position + Min;
     public Vector3 WorldMax => Position + Max;
     public static BoxCollider Full => new BoxCollider(new Vector3(1, 1, 1), Vector3.Zero);
-
-    public BoxCollider(Vector3 max, Vector3 position)
-    {
-        Min = Vector3.Zero;
-        Max = max;
-        Position = position;
-    }
 
     public bool Intersects(Ray ray)
     {
@@ -47,5 +40,10 @@ public class BoxCollider
     public bool Intersects(BoxCollider other)
     {
         return IntersectsX(other) && IntersectsY(other) && IntersectsZ(other);
+    }
+
+    public BoxCollider Clone()
+    {
+        return new BoxCollider(Max, Position);
     }
 }

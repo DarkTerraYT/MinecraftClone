@@ -23,11 +23,6 @@ public class Chunk : IDisposable
         Position = position;
         Blocks = new ushort[Width + Height * Width + Depth * Width * Height];
     }
-
-    public bool TryGetBlockWorld(Vector3Int localPosition, out BlockState block)
-    {
-        return Minecraft.Instance.Level.TryGetBlock(Position + localPosition, out block);
-    }
     
     private int ToArrayIndex(Vector3Int localPosition) => localPosition.X + localPosition.Y * Width + localPosition.Z *  Width * Height;
     
@@ -71,11 +66,11 @@ public class Chunk : IDisposable
 
     public void Draw() => Draw(Minecraft.Instance.BasicEffect);
 
-    public void Update(ChunkUpdateFlags flags)
+    public void Update(ChunkUpdateFlags flags, Block ignoredBlock = null)
     {
         if (flags.HasFlag(ChunkUpdateFlags.OpaqueMesh))
         {
-            mesh = ChunkGenerator.GenerateChunkMesh(this);
+            mesh = ChunkGenerator.GenerateChunkMesh(this, ignoredBlock);
         }
     }
 

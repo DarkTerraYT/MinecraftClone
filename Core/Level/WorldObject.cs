@@ -11,7 +11,8 @@ public class WorldObject
         CollisionBox.Position = position;
         Level = level;
     }
-    public BoxCollider CollisionBox { get; }
+
+    public readonly BoxCollider CollisionBox;
 
     public Level Level { get; }
     
